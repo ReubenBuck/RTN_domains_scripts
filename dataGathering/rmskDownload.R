@@ -229,6 +229,6 @@ dev.off()
 
 ## we could probably do our binning here too across different sizes
 
-rep$repUID <- as.factor(1:nrow(rep))
+rep$repUID <- paste(rep$genoChr,":" ,rep$genoStart,"-" ,rep$genoEnd, sep = "")
 save(rep, file=paste("R_objects/rmskTables/",genome, sep = ""))
 

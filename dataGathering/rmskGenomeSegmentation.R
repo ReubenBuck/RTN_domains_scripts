@@ -4,6 +4,8 @@ devtools::source_url("http://raw.githubusercontent.com/ReubenBuck/RTN_domains_sc
 
 library(optparse)
 library(dplyr)
+library('spdep')
+library(GenomicRanges)
 
 option_list = list(
   make_option(c("-p", "--path"), type="character", default=NULL, 
@@ -37,6 +39,10 @@ tail(rep)
 #Next we need to generate bin data 
 # use the function to generate reasonable sized bins
 
+repGR <- GRanges(seqnames = Rle(rep$genoChr),
+                 ranges = IRanges(start = rep$genoStart, end = rep$genoEnd),
+                 repUID = rep$repUID)
+
 
 # genreate a table of repUIDs and binIDs for bins at different sizes
 # so appropriate bin sizes 
@@ -44,9 +50,44 @@ sizes <- c(50000, 100000, 200000,500000, 1000000, 150000,2000000)
 
 binList <- binned.genome.reader(genome = "hg19", bin.size = sizes, keep.rate = .5)
 
-# cool now we have our bins
+for(i in 1:length(binList)){binList[[i]]$binID <- paste(binList[[i]]$chr,":",binList[[i]]$start, "-",binList[[i]]$end, sep = "" )}
 
+# cool now we have our bins
 tail(binList$hg19_bin.size_50000)
+
+
+# lets bin the data first 
+
+
+bin <- binList$hg19_bin.size_200000
+
+head(bin)
+
+binGR <- GRanges(seqnames = Rle(bin$chr), 
+                 ranges = IRanges(start = bin$start, end = bin$end),
+                 binID = bin$binID)
+
+
+OL <- as.matrix(findOverlaps(repGR, binGR, select = "first"))
+
+OL[duplicated(OL[,1]),]
+
+binningRep <- cbind(rep$repUID, bin$binID[OL])
+
+
+# there will be two kinds of edge cases
+# how to we want to assign those
+# majority assignment seems like the most logical
+# however first match seems easyest
+
+
+
+
+
+
+
+
+
 
 # we can use the start position for each chromosome to build a distance matrix
 # every numbr over a certain value we can remove
@@ -69,5 +110,10 @@ newStartDist[newStartDist > 0] = abs(newStartDist[newStartDist > 0] - 11)
 
 # therefore the best matrix is the one that can explian the most at the smaller bin sizes
 # get the best shifts at the boundaries
+
+# what is the plan do we want to gi
+
+
+
 
 
