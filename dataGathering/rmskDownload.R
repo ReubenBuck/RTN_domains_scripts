@@ -7,23 +7,61 @@
 # one idea is to download the raw rmsk files and use the chaining
 # gives us a method to count insertions 
 
-setwd("/Users/labadmin/Desktop/RTN_domains/")
+#setwd("/Users/labadmin/Desktop/RTN_domains/")
+devtools::source_url("http://raw.githubusercontent.com/ReubenBuck/RTN_domains_scripts/master/rtnDomainFunctions.R")
+
 library(dplyr)
-library(magrittr)
+#library(magrittr)
+library(optparse)
 
 rm(list = ls())
 
 
-genome = commandArgs(trailingOnly = TRUE)[1]
-print(genome)
+# need to include an error about having / in path way names
 
-rep_name <- paste( "~/Desktop/RTN_domains/data/rmskRawFiles/", genome,".fa.out" , sep = "")
+
+option_list = list(
+  make_option(c("-i", "--inPath"), type="character", default=getwd(), 
+              help="path to genome, default = current dir", metavar="character"),
+  make_option(c("-g", "--genome"), type="character", default=NA, 
+              help="genome name", metavar="character"),
+  make_option(c("-o", "--outPathRobject"), type="character", default=getwd(), 
+              help="output path for processed repeats, default = current dir", metavar="character"),
+  make_option(c("-p", "--outPathRplots"), type="character", default=getwd(), 
+              help="output path for repeats plots, default = current dir", metavar="character")
+); 
+
+opt_parser = OptionParser(option_list=option_list);
+opt = parse_args(opt_parser);
+
+genome <- opt$genome
+
+print(paste("genome =", opt$genome))
+print(paste("inPath =", opt$inPpath))
+print(paste("outPathRobject =", opt$outPathRobject))
+print(paste("outPathRplots =", opt$outPathRplots))
+
+if(is.na(genome)){stop("need to specify genome")}
+if(rev(strsplit(opt$inPath,split = "")[[1]])[1] != "/"){
+  opt$inPath = paste(opt$inPath,"/",sep = "")
+}
+if(rev(strsplit(opt$outPathRobject,split = "")[[1]])[1] != "/"){
+  opt$outPathRobject = paste(opt$outPathRobject,"/",sep = "")
+}
+if(rev(strsplit(opt$outPathRplots,split = "")[[1]])[1] != "/"){
+  opt$outPathRplots = paste(opt$outPathRplots,"/",sep = "")
+}
+
+
+# Downloading repeats
+
+rep_name <- paste( opt$inPath, genome,".fa.out" , sep = "")
 rep <- read.table(file = rep_name, header = FALSE, skip = 3, 
                   col.names = c("SWscore", "perDiv", "perIns", "perDel", "genoChr", "genoStart", "genoEnd", "genoLeft", 
                                 "strand", "repName", "repClass", "repStart", "repEnd", "repLeft", "repID"),
                   colClasses = c("integer", "double", "double", "double", "character", "integer", "integer","character", 
                                  "character", "character", "character", "character", "integer", "character", "character"),
-                  fill = TRUE
+                  fill = TRUE,nrows = 10000
                   )
 rep <- rep[rep$repID != "",]
 rep[rep$strand == "C",c("repStart", "repLeft")] <- rep[rep$strand == "C",c("repLeft", "repStart")]
@@ -140,8 +178,8 @@ if(genome == "hg19"){
 }
 
 
-
-dir.create(paste("plots/repStats/",genome,sep = ""))
+newDir <- paste(opt$outPathRplots,paste(genome,"Plots/",sep=""), sep = "")
+dir.create(newDir)
 
 # so what plots are we looking for?
 
@@ -155,7 +193,7 @@ L1statAll <- L1statAll[order(L1statAll$X3),]
 L1statAll$plotNames <- ""
 L1statAll$plotNames[is.na(L1statAll$repGroup)] <- as.character(L1statAll$repName[is.na(L1statAll$repGroup)])
 
-pdf(file = paste("plots/repStats/",genome,"/L1classification.pdf", sep = ""))
+pdf(file = paste(newDir,"/L1classification.pdf", sep = ""))
 par(mar = c(5,5,5,5))
 xBarplot <- barplot(L1statAll$X3,width = L1statAll$x,las = 1, horiz = FALSE, ylim = c(0,35), 
                     names = "", las = 2, col = rainbow(length(unique(L1statAll$repFamily)))[as.factor(L1statAll$repFamily)],
@@ -167,7 +205,7 @@ legend("topleft", title = "L1 families", legend = levels(as.factor(L1statAll$rep
 legend("top", title = "L1 groups", legend = c("new L1", "old L1"), fill = c(1,1), density = c(-1,20))
 dev.off()
 
-pdf(file = paste("plots/repStats/",genome,"/L1ungrouped.pdf", sep = ""))
+pdf(file = paste(newDir,"/L1ungrouped.pdf", sep = ""))
 par(mar = c(10,5,5,5))
 ungrouped <- aggregate(L1statAll$x,list(L1statAll$plotNames), sum)
 ungrouped$Group.1[ungrouped$Group.1 == ""] = "Grouped L1s"
@@ -179,7 +217,7 @@ dev.off()
 chainRatio <- table(as.factor(rep$repClass[match(unique(rep$repID), rep$repID)]))/table(as.factor(rep$repClass))
 repCov <- aggregate(x = rep$genoEnd - rep$genoStart, by = list(rep$repClass), FUN = sum)
 
-pdf(file = paste("plots/repStats/",genome,"/allRepChained.pdf", sep = ""))
+pdf(file = paste(newDir,"/allRepChained.pdf", sep = ""))
 par(mar = c(5,10,5,5))
 barplot(chainRatio, horiz = TRUE, las = 1,width = repCov$x, xlab = "chained repeat instances / unchained repeat instances")
 dev.off()
@@ -199,12 +237,12 @@ chainedGroup <- distinct(grouped,repID)
 groupedTab <- table(grouped$repGroup)[c("new_SINE", "new_L1", "old_L1", "ancient")]
 chainedGroupTab <- table(chainedGroup$repGroup)[c("new_SINE", "new_L1", "old_L1", "ancient")]
 
-pdf(file = paste("plots/repStats/",genome,"/groupChained.pdf", sep = ""))
+pdf(file = paste(newDir,"/groupChained.pdf", sep = ""))
 par(mar = c(10,5,5,5))
-barplot(groupedTab, col = c("darkgreen", "purple", "red", "darkblue"), density = 40, ylim = c(0,1.5*10^6), 
+barplot(groupedTab, col = c("darkgreen", "purple", "red", "darkblue"), density = 40, space = c(.2,.2,.2,.2), ylim = c(0,1.8*10^6), 
         ylab = "repeat masker hits", main = paste(genome, "retrotransposon groups"), las = 3)
-barplot(chainedGroupTab,col = c("darkgreen", "purple", "red", "darkblue"), add = T, axes = FALSE, names = FALSE)
-legend("topright", legend = c("unchained", "chained"), density = c(40,-1))
+barplot(chainedGroupTab,col = c("darkgreen", "purple", "red", "darkblue"), width = .9,space = c(.28,.335,.335,.335),add = T, axes = FALSE, names = FALSE)
+legend("topright", legend = c("unchained", "chained"), density = c(40,-1), bty = "n")
 dev.off()
 
 familied <- filter(rep, !is.na(repFamily))
@@ -216,7 +254,7 @@ familyNames$repGroup <- factor(familyNames$repGroup, levels = c("new_SINE", "new
 familiedTab <- table(familied$repFamily)[familyNames$repFamily[order(familyNames$repGroup)]]
 chainedFamilyTab <- table(chainedFamily$repFamily)[familyNames$repFamily[order(familyNames$repGroup)]]
 
-pdf(file = paste("plots/repStats/",genome,"/familyChained.pdf", sep = ""))
+pdf(file = paste(newDir,"/familyChained.pdf", sep = ""))
 par(mar = c(10,5,5,5))
 barplot(familiedTab, density = 40, ylim = c(0,.8*10^6), las = 3,
         ylab = "repeat masker hits", main = paste(genome, "retrotransposon families"), 
@@ -230,5 +268,5 @@ dev.off()
 ## we could probably do our binning here too across different sizes
 
 rep$repUID <- paste(rep$genoChr,":" ,rep$genoStart,"-" ,rep$genoEnd, sep = "")
-save(rep, file=paste("R_objects/rmskTables/",genome, sep = ""))
+save(rep, file=paste(opt$outPathRobject,genome,".RData", sep = ""))
 
