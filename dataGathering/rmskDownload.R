@@ -61,7 +61,7 @@ rep <- read.table(file = rep_name, header = FALSE, skip = 3,
                                 "strand", "repName", "repClass", "repStart", "repEnd", "repLeft", "repID"),
                   colClasses = c("integer", "double", "double", "double", "character", "integer", "integer","character", 
                                  "character", "character", "character", "character", "integer", "character", "character"),
-                  fill = TRUE,nrows = 10000
+                  fill = TRUE
                   )
 rep <- rep[rep$repID != "",]
 rep[rep$strand == "C",c("repStart", "repLeft")] <- rep[rep$strand == "C",c("repLeft", "repStart")]
@@ -201,8 +201,8 @@ xBarplot <- barplot(L1statAll$X3,width = L1statAll$x,las = 1, horiz = FALSE, yli
                     ylab = "divergence from consensus (%)", main = paste(genome,"L1 classification"))
 arrows(x0 = xBarplot, x1 = xBarplot,y0 = as.double(as.character(L1statAll$X2)),
        y1 = as.double(as.character(L1statAll$X4)), angle = 90, code = 3, length = .05)
-legend("topleft", title = "L1 families", legend = levels(as.factor(L1statAll$repFamily)), fill = rainbow(length(unique(L1statAll$repFamily))))
-legend("top", title = "L1 groups", legend = c("new L1", "old L1"), fill = c(1,1), density = c(-1,20))
+legend("topleft", title = "L1 families", legend = levels(as.factor(L1statAll$repFamily)), fill = rainbow(length(unique(L1statAll$repFamily))), bty = "n")
+legend("top", title = "L1 groups", legend = c("new L1", "old L1"), fill = c(1,1), density = c(-1,20), bty = "n")
 dev.off()
 
 pdf(file = paste(newDir,"/L1ungrouped.pdf", sep = ""))
@@ -256,13 +256,15 @@ chainedFamilyTab <- table(chainedFamily$repFamily)[familyNames$repFamily[order(f
 
 pdf(file = paste(newDir,"/familyChained.pdf", sep = ""))
 par(mar = c(10,5,5,5))
-barplot(familiedTab, density = 40, ylim = c(0,.8*10^6), las = 3,
+barplot(familiedTab, density = 40,  ylim = c(0,.8*10^6), las = 3,
         ylab = "repeat masker hits", main = paste(genome, "retrotransposon families"), 
-        col = c("darkgreen", "purple", "red", "darkblue")[as.integer(sort(familyNames$repGroup))])
+        col = c("darkgreen", "purple", "red", "darkblue")[as.integer(sort(familyNames$repGroup))],
+        width = 1)
 barplot(chainedFamilyTab, add = T, axes = FALSE, names = FALSE,
-        col = c("darkgreen", "purple", "red", "darkblue")[as.integer(sort(familyNames$repGroup))])
-legend("topright", legend = c("unchained", "chained"), density = c(40,-1))
-legend("topleft", legend = levels(familyNames$repGroup), fill  = c("darkgreen", "purple", "red", "darkblue"))
+        col = c("darkgreen", "purple", "red", "darkblue")[as.integer(sort(familyNames$repGroup))],
+        width = .9, space = c(.28,rep(.333, length(chainedFamilyTab) - 1)))
+legend("topright", legend = c("unchained", "chained"), density = c(40,-1), bty = "n")
+legend("top", legend = levels(familyNames$repGroup), fill  = c("darkgreen", "purple", "red", "darkblue"), bty = "n")
 dev.off()
 
 ## we could probably do our binning here too across different sizes
