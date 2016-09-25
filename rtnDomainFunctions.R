@@ -7,28 +7,14 @@ binned.genome.reader <- function(genome, bin.size, keep.rate){
   txt <- readLines(con)
   chrom_info <- read.delim(textConnection(txt), header = FALSE)
   
-  
-  ses <- browserSession("UCSC")
-  genome(ses) <- genome
-  
-  data.types <- c("gaps")
-  track.name <- c("gap")
-  table.name <- c("gap")
-  
-  
-  for(i in 1:length(data.types)){
-    dat <- getTable(
-      ucscTableQuery(
-        ses, 
-        track = track.name[i],
-        table = table.name[i]
-      )
-    )
-    assign(data.types[i], dat)    		
-  }
-  
-  
-  
+
+  my_db <- src_mysql("hg19",
+                     host = "genome-mysql.cse.ucsc.edu", 
+                     user = "genomep", 
+                     password = "password")
+  gaps <- data.frame(tbl(my_db, "gap"))
+
+
   gaps.gr <- GRanges(seqnames = Rle(gaps$chrom),
                      ranges = IRanges(start = gaps$chromStart, end = gaps$chromEnd)
   )		 
