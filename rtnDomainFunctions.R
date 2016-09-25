@@ -2,18 +2,19 @@ binned.genome.reader <- function(genome, bin.size, keep.rate){
 #  library(rtracklayer)
   
   # getting chrom info 
-  web <- paste("http://hgdownload.soe.ucsc.edu/goldenPath/", genome, "/database/chromInfo.txt.gz", sep = "")
-  con <- gzcon(url(web))
-  txt <- readLines(con)
-  chrom_info <- read.delim(textConnection(txt), header = FALSE)
-  
 
   my_db <- src_mysql("hg19",
                      host = "genome-mysql.cse.ucsc.edu", 
                      user = "genomep", 
                      password = "password")
+  
+  chrom_info <- data.frame(tbl(my_db, "chromInfo"))
+  chrom_info$size <- as.integer(chrom_info$size)
+  
   gaps <- data.frame(tbl(my_db, "gap"))
-
+  gaps$chromStart = as.integer(gaps$chromStart)
+  gaps$chromEnd = as.integer(gaps$chromEnd)
+  gaps$size = as.integer(gaps$size)
 
   gaps.gr <- GRanges(seqnames = Rle(gaps$chrom),
                      ranges = IRanges(start = gaps$chromStart, end = gaps$chromEnd)
@@ -21,7 +22,7 @@ binned.genome.reader <- function(genome, bin.size, keep.rate){
   
   Final <- NULL
   for(z in 1:length(bin.size)){
-    chrom_info1 <- chrom_info[chrom_info[,2] > bin.size[z],]
+    chrom_info1 <- chrom_info[ chrom_info$size > bin.size[z],]
     
     bins <- NULL
     for( i in 1:dim(chrom_info1)[1]){
