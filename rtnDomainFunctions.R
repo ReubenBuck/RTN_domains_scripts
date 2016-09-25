@@ -1,5 +1,5 @@
 binned.genome.reader <- function(genome, bin.size, keep.rate){
-  library(rtracklayer)
+#  library(rtracklayer)
   
   # getting chrom info 
   web <- paste("http://hgdownload.soe.ucsc.edu/goldenPath/", genome, "/database/chromInfo.txt.gz", sep = "")
