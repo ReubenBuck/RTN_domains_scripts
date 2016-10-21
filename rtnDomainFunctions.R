@@ -3,7 +3,7 @@ binned.genome.reader <- function(genome, bin.size, keep.rate){
   
   # getting chrom info 
 
-  my_db <- src_mysql("hg19",
+  my_db <- src_mysql(genome,
                      host = "genome-mysql.cse.ucsc.edu", 
                      user = "genomep", 
                      password = "password")
@@ -11,10 +11,22 @@ binned.genome.reader <- function(genome, bin.size, keep.rate){
   chrom_info <- data.frame(tbl(my_db, "chromInfo"))
   chrom_info$size <- as.integer(chrom_info$size)
   
-  gaps <- data.frame(tbl(my_db, "gap"))
+  # gaps may not work depending on the database
+  # gaps are sometimes split across chromosome 
+  
+  if(any(src_tbls(my_db) == "gap")){
+    gaps <- data.frame(tbl(my_db, "gap"))
+  }else{
+    gaps <- NULL
+    for(i in 1:nrow(chrom_info)){
+      gaps <- rbind(gaps, data.frame(tbl(my_db, paste(chrom_info$chrom[i], "gap", sep = "_"))))
+    }
+  }
+  
   gaps$chromStart = as.integer(gaps$chromStart)
   gaps$chromEnd = as.integer(gaps$chromEnd)
   gaps$size = as.integer(gaps$size)
+  
 
   gaps.gr <- GRanges(seqnames = Rle(gaps$chrom),
                      ranges = IRanges(start = gaps$chromStart, end = gaps$chromEnd)
