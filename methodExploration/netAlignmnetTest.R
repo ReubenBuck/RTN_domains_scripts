@@ -1,4 +1,4 @@
-A <- read.table("~/Desktop/longAlign.txt")
+A <- read.table("~/Desktop/RTN_domains/data/chainAlignments/test/longAlign.txt")
 
 plot(A$V2, type = "l")
 
