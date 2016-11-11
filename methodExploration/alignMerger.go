@@ -115,7 +115,7 @@ func main() {
 	// 	fmt.Println(chains[i].alignments)
 	// }
 
-	minAlign := 100
+	minAlign := 6
 
 	for i := 0; i < len(chains); i++ {
 		var newAlign alignRangeMerged
@@ -128,6 +128,7 @@ func main() {
 				newAlign.refGapLen = chains[i].alignments[j].refGapLen
 				newAlign.queGapLen = chains[i].alignments[j].queGapLen
 				fmt.Println(newAlign)
+
 				newAlign.refAlignLen = 0
 				newAlign.queAlignLen = 0
 				newAlign.refGapLen = 0
@@ -157,5 +158,10 @@ func main() {
 
 	// probably worth printing it out as something that is easy to read into R as well
 	// ie a consitent tabular format
+
+	// running it at zero will just reformat the data, cool
+	// what is the best thing to produce from this?
+	// maybe start by producing a dataset that contains everything that may be needed.
+	// we can use the bufio package to just scan the 100 best chains
 
 }

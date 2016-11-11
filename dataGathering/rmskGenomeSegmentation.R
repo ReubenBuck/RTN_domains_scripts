@@ -41,9 +41,9 @@ library(GenomicRanges)
 library(reshape2)
 
 # 
-# path = "~/Desktop/RTN_domain/R_objects/repData/"
-# outPath="~/Desktop/RTN_domain/R_objects/repMapData/"
-# genome = "hg19"
+# path = "~/Desktop/RTN_domains/R_objects/rmskTables/"
+# outPath="~/Desktop/RTN_domains/R_objects/repMapData/canFam3"
+# genome = "canFam3"
 
 load(file = paste(path,genome,".RData", sep =""))
 
@@ -63,11 +63,10 @@ repGR <- GRanges(seqnames = Rle(rep$genoChr),
 # so appropriate bin sizes 
 sizes <- as.integer(c(50000,100000,250000, 500000, 750000, 1000000, 1500000,2000000))
 
-binList <- binned.genome.reader(genome = "hg19", bin.size = sizes, keep.rate = .5)
+binList <- binned.genome.reader(genome = genome, bin.size = sizes, keep.rate = .5)
 for(i in 1:length(binList)){binList[[i]]$binID <- paste(binList[[i]]$chr,":",binList[[i]]$start, "-",binList[[i]]$end, sep = "" )}
 
 # cool now we have our bins
-head(binList$hg19_bin.size_2000000)
 
 
 
