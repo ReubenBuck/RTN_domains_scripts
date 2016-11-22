@@ -5,6 +5,14 @@ package main
 // for starters we will just choose a minimum size that seems reasonable
 // afterwards we will chose a minnimum size based on what seems reasonable
 // given the sizes of the ungapped alignmnets
+// we could add some flage to determine how much of the file is read in
+// realisticly we probably only care about the top 1000 chains.
+
+// now we need to put in our command line variables
+
+//os.Args[1] chainFile
+//os.Args[2] chainLimit
+//os.Args[3] alignmnetGap
 
 import (
 	"bufio"
@@ -75,10 +83,11 @@ type rangeObjects []rangeObject
 
 var aligns alignRanges
 var chains alignChains
+var chainLimit int
 
 func main() {
 
-	f, err := os.Open("/Users/labadmin/Desktop/RTN_domains/data/chainAlignments/test/testAlignGo.chain")
+	f, err := os.Open(os.Args[1])
 	if err != nil {
 		log.Fatalf("reading file: %v", err)
 	}
@@ -89,14 +98,27 @@ func main() {
 
 	sc := bufio.NewScanner(f)
 	sc.Split(bufio.ScanLines)
+	// could insert a counter here to determne how many chains to read in
+	chainLimit, err = strconv.Atoi(os.Args[2])
+	if err != nil {
+		log.Fatalf("chain limit did not convert: %v", err)
+	}
+	chainCount := 0
 	for sc.Scan() {
 
 		line := sc.Text()
 		if line == "" {
 			continue
 		}
+		if strings.Contains(line, "#") {
+			continue
+		}
 		words := strings.Split(line, " ")
 		if words[0] == "chain" {
+			if chainCount == chainLimit {
+				break
+			}
+			chainCount++
 			chain.header.score, err = strconv.Atoi(words[1])
 			chain.header.refName = words[2]
 			chain.header.refSize, err = strconv.Atoi(words[3])
@@ -127,21 +149,22 @@ func main() {
 			}
 
 		}
+		if err != nil {
+			log.Fatalf("chain header did not convert: %v", err)
+		}
 	}
-	// for i := 0; i < len(chains); i++ {
-	// 	fmt.Println(chains[i].header)
-	// 	fmt.Println(chains[i].alignments)
-	// }
 
 	var rangeGenome rangeObject
 	var rangeGenomes rangeObjects
-	minAlign := 10
+	minAlign, err := strconv.Atoi(os.Args[3])
+	if err != nil {
+		log.Fatalf("min Align convert fail: %v", err)
+	}
 
 	for i := 0; i < len(chains); i++ {
 		var newAlign alignRangeMerged
 		var refGap int
 		var queGap int
-		fmt.Println(chains[i].header)
 		firstTime := true
 		for j := 0; j < len(chains[i].alignments); j++ {
 
@@ -162,8 +185,6 @@ func main() {
 				rangeGenome.id = chains[i].header.id
 				rangeGenome.refGap = newAlign.refMergedGapLen
 				rangeGenome.queGap = newAlign.queMergedGapLen
-
-				fmt.Println(newAlign)
 
 				if firstTime {
 					rangeGenome.refStart = chains[i].header.refStart
@@ -247,27 +268,24 @@ func main() {
 			queGap = newAlign.queGapLen
 		}
 
-		fmt.Println(newAlign)
 		// here we also need to push out ranged data
 	}
 
 	for i := 0; i < len(rangeGenomes); i++ {
-		fmt.Println(rangeGenomes[i])
-
+		fmt.Println(
+			rangeGenomes[i].refName,
+			rangeGenomes[i].refSize,
+			rangeGenomes[i].refStart,
+			rangeGenomes[i].refEnd,
+			rangeGenomes[i].refStrand,
+			rangeGenomes[i].refGap,
+			rangeGenomes[i].queName,
+			rangeGenomes[i].queSize,
+			rangeGenomes[i].queStart,
+			rangeGenomes[i].queEnd,
+			rangeGenomes[i].queStrand,
+			rangeGenomes[i].queGap,
+			rangeGenomes[i].id,
+		)
 	}
-
-	// will read out as two seperate ranges on the same line
-
-	// data is read in and intervals are merging
-	// do we want to read them out as their merged version or would it be better to do it as two seperate ranges
-	// it probably will also be worth while keeping a tally on the number of gaps that have been merged over
-
-	// probably worth printing it out as something that is easy to read into R as well
-	// ie a consitent tabular format
-
-	// running it at zero will just reformat the data, cool
-	// what is the best thing to produce from this?
-	// maybe start by producing a dataset that contains everything that may be needed.
-	// we can use the bufio package to just scan the 100 best chains
-
 }
