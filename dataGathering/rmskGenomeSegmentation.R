@@ -40,11 +40,13 @@ library(Matrix)
 library(GenomicRanges)
 library(reshape2)
 
-# 
+# Comment these back after testing
 # path = "~/Desktop/RTN_domains/R_objects/rmskTables/"
 # outPath="~/Desktop/RTN_domains/R_objects/repMapData/canFam3"
 # genome = "canFam3"
 
+ 
+ 
 load(file = paste(path,genome,".RData", sep =""))
 
 
@@ -62,6 +64,10 @@ repGR <- GRanges(seqnames = Rle(rep$genoChr),
 # genreate a table of repUIDs and binIDs for bins at different sizes
 # so appropriate bin sizes 
 sizes <- as.integer(c(50000,100000,250000, 500000, 750000, 1000000, 1500000,2000000))
+
+#sizes <- as.integer(50000)
+#binDistances <- c(1,2,5,7,10,15)
+binDistances <- 1
 
 binList <- binned.genome.reader(genome = genome, bin.size = sizes, keep.rate = .5)
 for(i in 1:length(binList)){binList[[i]]$binID <- paste(binList[[i]]$chr,":",binList[[i]]$start, "-",binList[[i]]$end, sep = "" )}
@@ -115,22 +121,27 @@ for(i in 1:length(sizes)){
   }
   repSummary[is.na(repSummary)] <- 0
   
-  
-  rownames(bin) <- 1:nrow(bin)
-  mat <- Matrix(data = 0, nrow = nrow(bin), ncol= nrow(bin))
-  for(i in 1:length(unique(bin$chr))){
-    binChr <- bin[bin$chr == unique(bin$chr)[i],]
-    neighborDist <- as.matrix(dist((binChr$start + sizeSelect - 1)/sizeSelect))
-    neighborDist[neighborDist > 1] = 0
-    mat[as.integer(rownames(binChr)), as.integer(rownames(binChr))] <- neighborDist
+  neighborList <- NULL
+  for(matDistance in binDistances){
+    rownames(bin) <- 1:nrow(bin)
+    mat <- Matrix(data = 0, nrow = nrow(bin), ncol= nrow(bin))
+    for(i in 1:length(unique(bin$chr))){
+      binChr <- bin[bin$chr == unique(bin$chr)[i],]
+      neighborDist <- as.matrix(dist((binChr$start + sizeSelect - 1)/sizeSelect))
+      neighborDist[neighborDist > matDistance] = 0
+      neighborDist[neighborDist > 0] = 1
+      mat[as.integer(rownames(binChr)), as.integer(rownames(binChr))] <- neighborDist
+    }
+    diag(mat) <- 1
+    
+    neighborList <- c(neighborList, list(mat))
   }
-  diag(mat) <- 1
-  
-#  lw <- mat2listw(mat)
+  names(neighborList) <- paste("binDistance", binDistances, sep = "")
+  #  lw <- mat2listw(mat)
  
   
   
-  repDataList <- list(repSummary = repSummary,bin = bin, repMap = repMap ,neighborMat = mat)
+  repDataList <- list(repSummary = repSummary,bin = bin, repMap = repMap ,neighborMat = neighborList)
 
 saveName = paste("repData_",genome,"_",sizeSelect,".RData", sep = "")
 save(repDataList, file = paste(outPath, saveName,sep = "/"))

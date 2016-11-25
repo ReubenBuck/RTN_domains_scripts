@@ -5,7 +5,7 @@
 rm(list = ls())
 setwd("Desktop/RTN_domains/")
 refGenome = "hg19"
-queGenome = "rheMac3"
+queGenome = "mm10"
 
 datAll = NULL
 for(i in c(10000,20000,30000,40000,50000,60000,70000,80000,90000,100000,200000, 300000)){
@@ -35,11 +35,11 @@ datAll$group <- as.factor(datAll$group)
 # maybe look at which minimum gap length gives us the most apropriate number of alignemnts
 
 # the most number of bases above a certain length 
-minRatio = .95
-maxRatio = 1.05
-blockLengths <- c(100000, 500000, 1e6,2*10^6,3e6)
+minRatio = .85
+maxRatio = 1.15
+blockLengths <- c(500000, 1e6,2*10^6,3e6,5e6)
 
-pdf(file = paste("plots/alignmentChainStats/", refGenome, ".", queGenome, ".pdf", sep = ""), height = 8,width=5)
+pdf(file = paste("plots/alignmentChainStats/", refGenome, ".", queGenome,"_minRatio",minRatio,"_maxRatio",maxRatio ,".pdf", sep = ""), height = 8,width=5)
 
 layout(mat= matrix(c(1,2,3,4), nrow = 4))
 par(mar = c(0,0,0,0), oma = c(6,10,8,6))
