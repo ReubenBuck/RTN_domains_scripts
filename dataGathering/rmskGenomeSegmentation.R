@@ -9,12 +9,18 @@ option_list = list(
               help="path to genome", metavar="character"),
   make_option(c("-g", "--genome"), type="character", default=NA, 
               help="genome name", metavar="character"),
-  make_option(c("-o", "--outPathRobject"), type="character", default=getwd(), 
+  make_option(c("-t", "--type"), type="character", default=NA, 
+              help="distance from bin or size of bin, dist or size", metavar="character"),
+  make_option(c("-o", "--outPathRobject"), type="character", 
               help="output path for processed repeats, default = current dir", metavar="character")
 ); 
 
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
+
+if(opt$type != "size" | opt$type != "dist"){
+  stop("must specify type of segmentation as size or dist")
+}
 
 genome <- opt$genome
 path <- opt$path
@@ -63,11 +69,16 @@ repGR <- GRanges(seqnames = Rle(rep$genoChr),
 
 # genreate a table of repUIDs and binIDs for bins at different sizes
 # so appropriate bin sizes 
-sizes <- as.integer(c(50000,100000,250000, 500000, 750000, 1000000, 1500000,2000000))
+if(opt$type == "size"){
+  sizes <- as.integer(c(20000,50000,100000,250000, 500000, 750000, 1000000, 1500000,2000000))
+  binDistances <- 1
+  
+}
 
-#sizes <- as.integer(50000)
-#binDistances <- c(1,2,5,7,10,15)
-binDistances <- 1
+if(opt$type == "dist"){
+  sizes <- as.integer(50000)
+  binDistances <- c(1,2,5,7,10,15)
+}
 
 binList <- binned.genome.reader(genome = genome, bin.size = sizes, keep.rate = .5)
 for(i in 1:length(binList)){binList[[i]]$binID <- paste(binList[[i]]$chr,":",binList[[i]]$start, "-",binList[[i]]$end, sep = "" )}
@@ -143,112 +154,8 @@ for(i in 1:length(sizes)){
   
   repDataList <- list(repSummary = repSummary,bin = bin, repMap = repMap ,neighborMat = neighborList)
 
-saveName = paste("repData_",genome,"_",sizeSelect,".RData", sep = "")
+saveName = paste("repData_",genome,"_",sizeSelect,"_",opt$type,".RData", sep = "")
 save(repDataList, file = paste(outPath, saveName,sep = "/"))
 
 }
-
-# objects to save is the mapping, the matrix, the summaries
-
-
-# 
-# 
-# 
-# lw <- mat2listw(mat)
-# 
-# 
-# moran.plot(x = (repSummary$new_L1/bin$Known) * 1e6, listw = lw,labels = FALSE, pch = 16, cex = .3)
-# moran(x = repSummary$new_L1/(bin$Known)* 1e6, listw = lw,n = nrow(b)-1, S0 = sum(mat))
-# moran.mc(x = repSummary$new_SINE/(bin$Known)* 1e6, listw = lw, nsim = 100)
-# moran.mc(x = repSummary$ancient/(bin$Known)* 1e6, listw = lw, nsim = 100)
-# 
-# 
-# lmAncient <- localmoran(x = repSummary$ancient, listw = lw)
-# lmNew_SINE <- localmoran(x = repSummary$new_SINE, listw = lw)
-# 
-# lgAncient <- localG(x = repSummary$ancient/(bin$Known)* 1e6, listw = lw)
-# lgNew_SINE <- localG(x = repSummary$new_SINE/(bin$Known)* 1e6, listw = lw)
-# lgNew_L1 <- localG(x = repSummary$new_L1/(bin$Known)* 1e6, listw = lw)
-# lgOld_L1 <- localG(x = repSummary$old_L1/(bin$Known)* 1e6, listw = lw)
-# 
-# 
-# layout(matrix(c(1,2,3,4),nrow = 4))
-# par(mar=c(2,5,2,5))
-# chr.choice = "chr1"
-# xlim = c(10e6,220e6)
-# plot(bin$start[bin$chr == chr.choice] + (sizeSelect/2),lgAncient[bin$chr == chr.choice], col = "darkblue",type = "l", xlim = xlim);abline(h=3);grid()
-# plot(bin$start[bin$chr == chr.choice] + (sizeSelect/2),lgNew_SINE[bin$chr == chr.choice], col = "darkgreen", type = "l", xlim = xlim);abline(h=3);grid()
-# plot(bin$start[bin$chr == chr.choice] + (sizeSelect/2),lgNew_L1[bin$chr == chr.choice],col = "purple",type = "l", xlim = xlim);abline(h=3);grid()
-# plot(bin$start[bin$chr == chr.choice] + (sizeSelect/2),lgOld_L1[bin$chr == chr.choice],col = "red",type = "l", xlim = xlim);abline(h=3);grid()
-# 
-# layout(matrix(c(1,2),nrow = 2))
-# chr.choice = "chr20"
-# xlim = c(30e6,40e6)
-# plot(bin$start[bin$chr == chr.choice] + (sizeSelect/2),lgAncient[bin$chr == chr.choice], col = "darkblue",type = "l", xlim = xlim);abline(h=3);grid()
-# lines(bin$start[bin$chr == chr.choice] + (sizeSelect/2), lmAncient[bin$chr == chr.choice,4], col = "orange",type = "l", xlim = xlim)
-# plot(bin$start[bin$chr == chr.choice] + (sizeSelect/2),lgNew_SINE[bin$chr == chr.choice], col = "darkgreen",type = "l", xlim = xlim);abline(h=3);grid()
-# lines(bin$start[bin$chr == chr.choice] + (sizeSelect/2), lmNew_SINE[bin$chr == chr.choice,4], col = "orange",type = "l", xlim = xlim)
-# 
-# layout(matrix(c(1,2),nrow = 2))
-# chr.choice = "chr3"
-# xlim = c(10e6,20e6)
-# plot(bin$start[bin$chr == chr.choice] + (sizeSelect/2),lgAncient[bin$chr == chr.choice], col = "darkblue",type = "l", xlim = xlim);abline(h=3);grid()
-# lines(bin$start[bin$chr == chr.choice] + (sizeSelect/2),lgNew_SINE[bin$chr == chr.choice], col = "darkgreen",type = "l", xlim = xlim)
-# plot(bin$start[bin$chr == chr.choice] + (sizeSelect/2), lmAncient[bin$chr == chr.choice,4], col = "darkblue",type = "l", xlim = xlim);abline(h=3);grid()
-# lines(bin$start[bin$chr == chr.choice] + (sizeSelect/2), lmNew_SINE[bin$chr == chr.choice,4], col = "darkgreen",type = "l", xlim = xlim)
-# 
-# 
-# # the idea here is that clusters 
-# bluered <- colorRampPalette(colors = c("darkblue","blue","green","orange","red"))
-# 
-# h2 <- hist2d((repSummary[,c("new_SINE", "ancient")]/bin$Known * 10e6), nbins=50, 
-#              col=bluered(30), xlab = "Alu per Mb", ylab = "MIR/L2 per Mb", xlim = c(0,20000), ylim = c(0,20000),
-#              main = paste("bin size =",sizeSelect), zlim = c(0,log10(nrow(repSummary)/50)),
-#              FUN=function(x) log10(length(x)))
-# abline(v = sort(repSummary$new_SINE/bin$Known * 10e6)[.9 * nrow(bin)])
-# abline(h = sort(repSummary$ancient/bin$Known * 10e6)[.9 * nrow(bin)])
-# legend("topright",legend = "90th percentile", lty = 1, bty = "n")
-# 
-# 
-# # so the idea is for each element to use the spatial data that best describes the spatial relationships
-# # this is determined by where these paterns most emerge. 
-# 
-# # maybe remove the X chromasome form the analysis because it is a speceial case
-# 
-# 
-# newStartDist[newStartDist > 0] = abs(newStartDist[newStartDist > 0] - 7)
-# newStartDist[1:10,1:10]
-# 
-# 
-# weightMaker <- function(x,k,model){
-#   # x is a matrix with the distnaces neightbors
-#   # select the number of neighbors willing to be considered
-#   # apply one of several pre-selected weight models
-#   
-#   # 
-#   
-#   if(model == "nearestNeightbor"){
-#     
-#   }
-#   
-#   
-# }
-# 
-# 
-
-# at least we have a way to generate the distance matrix 
-# however we are not sure what kind of distance matrix would be best
-# we are also not sure what outcomes we could expect form a better distance matrix
-# the idea is that we capture hot spots at the best resolution. 
-
-# therefore the best matrix is the one that can explian the most at the smaller bin sizes
-# get the best shifts at the boundaries
-
-# what is the plan do we want to gi
-
-# we can get pretty good hotspots at reasonable resolutions.
-# we go down to a point where clusters no longer overlap.
-
-# there's probably a way to measure the optimal at different scales for different elements
-
 
