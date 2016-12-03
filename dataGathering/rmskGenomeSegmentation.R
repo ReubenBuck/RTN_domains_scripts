@@ -18,7 +18,7 @@ option_list = list(
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
 
-if(opt$type != "size" | opt$type != "dist"){
+if(!(opt$type == "size" | opt$type == "dist")){
   stop("must specify type of segmentation as size or dist")
 }
 

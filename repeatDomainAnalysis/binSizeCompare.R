@@ -62,28 +62,6 @@ colnames(mI) <- paste("binSize", as.integer(sizes), sep = "_")
 names(sizesGstat) <- paste("binSize", as.integer(sizes), sep = "_")
 
 
-# 
-# layout(matrix(c(1,2), nrow = 2))
-# chrSelect <- "chr20"
-# a = 1
-# b = 5
-# c = 8
-# plot(sizesGstat[[a]]$start[sizesGstat[[a]]$chr == chrSelect] + (sizes[a]/2), 
-#      sizesGstat[[a]]$ancient[sizesGstat[[a]]$chr == chrSelect], 
-#      type = "l", xlim = c(10000000, 60000000))
-# lines(sizesGstat[[b]]$start[sizesGstat[[b]]$chr == chrSelect] + (sizes[b]/2), sizesGstat[[b]]$ancient[sizesGstat[[b]]$chr == chrSelect], col = 2)
-# lines(sizesGstat[[c]]$start[sizesGstat[[c]]$chr == chrSelect] + (sizes[c]/2), sizesGstat[[c]]$ancient[sizesGstat[[c]]$chr == chrSelect], col = 3)
-# 
-# abline(h = 3)
-# 
-# plot(sizesGstat[[a]]$start[sizesGstat[[a]]$chr == chrSelect] + (sizes[a]/2), 
-#      sizesGstat[[a]]$new_SINE[sizesGstat[[a]]$chr == chrSelect], 
-#      type = "l", xlim = c(10000000, 60000000))
-# lines(sizesGstat[[b]]$start[sizesGstat[[b]]$chr == chrSelect] + (sizes[b]/2), sizesGstat[[b]]$new_SINE[sizesGstat[[b]]$chr == chrSelect], col = 2)
-# lines(sizesGstat[[c]]$start[sizesGstat[[c]]$chr == chrSelect] + (sizes[c]/2), sizesGstat[[c]]$new_SINE[sizesGstat[[c]]$chr == chrSelect], col = 3)
-# 
-# abline(h = 3)
-
   
 chrChoice = "chr4"
 pAdjMethod <- "fdr"
