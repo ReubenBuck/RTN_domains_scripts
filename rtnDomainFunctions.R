@@ -15,7 +15,7 @@ binned.genome.reader <- function(genome, bin.size, keep.rate){
   # gaps are sometimes split across chromosome 
   
   if(any(src_tbls(my_db) == "gap")){
-    gaps <- data.frame(tbl(my_db, "gap"))
+    gaps <- data.frame(collect(tbl(my_db, "gap")))
   }else{
     gaps <- NULL
     for(i in 1:nrow(chrom_info)){
@@ -40,6 +40,7 @@ binned.genome.reader <- function(genome, bin.size, keep.rate){
     for( i in 1:dim(chrom_info1)[1]){
       start <- seq(from = 1, to = chrom_info1[i,2], by = bin.size[z])
       end <- c(seq(from = bin.size[z], to = chrom_info1[i,2], by = bin.size[z]), chrom_info1[i,2])
+      end <- end[1:length(start)]
       pre.bin <- data.frame(chr = chrom_info1[i,1], start = start, end = end)
       bins <- rbind(bins, pre.bin)
     }
