@@ -11,7 +11,7 @@ library(spdep)
 library(GenomicRanges)
 
 
-sizes <- c(50000, 100000,250000,500000,750000,1000000,1500000,2000000)
+sizes <- c(20000, 50000, 100000,250000,500000,750000,1000000,1500000,2000000)
 
 rGroups <- c("ancient", "new_SINE", "new_L1", "old_L1")
 
@@ -25,8 +25,6 @@ noX = TRUE
 for(i in 1:length(sizes)){
   
   load(file = paste("~/Desktop/RTN_domains/R_objects/rmskMapTables/", genome, "/repData_", genome, "_",as.integer(sizes[i]),".RData", sep = ""))
-  
-
   
   if(noX){
     chrX <- (1:nrow(repDataList$bin))[ repDataList$bin$chr == "chrX"]
@@ -78,7 +76,7 @@ par(mar = c(.5,5,.5,5), oma = c(5,1,5,1))
 
 for(i in 1:4){
   repChoice = rGroups[i]
-  colChoice = c("darkblue", "seagreen4", "purple", "orangered")[i]
+  colChoice = c("darkblue", "aquamarine3", "purple", "orangered")[i]
     
   plot(1,xlim = xlim, ylim = c(0,1),type = "n", axes = FALSE, xlab = "", ylab = "")
   axis(side = 2,at = (1:length(sizes))/length(sizes) - (.5/length(sizes)), labels = sizes, las = 2)
