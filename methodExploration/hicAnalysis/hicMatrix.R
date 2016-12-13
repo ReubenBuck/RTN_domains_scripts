@@ -8,9 +8,13 @@ library(expm)
 rawMatrix <- read.delim("data/trialHicAnalysis/rawMatrix/rawMatrix.txt", header = TRUE, sep = "\t",row.names = 1)
 rawMatrix <- as.matrix(rawMatrix[,2:ncol(rawMatrix)])
 
-layout(c(1,2), heights = c(2,1))
-par(mar = c(0,5,5,5))
-image(log10(rawMatrix), xaxt = "n")
+chrNames <- gsub("\\..+", "",colnames(rawMatrix))
+chrStart <- as.integer(gsub(".+\\.", "",colnames(rawMatrix)))
+
+layout(c(1))
+par(mar = c(5,5,5,5))
+image(log10(rawMatrix[chrNames == "chr12" | chrNames == "chr13",chrNames == "chr12" | chrNames == "chr13" ]), xaxt = "n")
+image(log10(rawMatrix))
 par(mar = c(5,5,0,5))
 barplot(colSums(rawMatrix, na.rm = TRUE), space = 0)
 

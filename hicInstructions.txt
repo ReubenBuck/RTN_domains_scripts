@@ -1,0 +1,18 @@
+Guide to HiC analysis
+
+
+Get the data from SRA
+
+
+Unpack 
+
+
+Map with hicup
+
+
+Covert to matrix With homer
+
+analyzeHiC tagDir -raw -res 10000000 > rawMatrix/rawMatrix.txt
+
+Matrix Analysis
+
