@@ -1,10 +1,11 @@
 #!/bin/bash
 
+# Script to perform Hi-C read mapping for paired end reads unising hicup software
+# script is written for use on adelaide university phoenix cluster
+
 # Invoked by:
 #
-# READPATH=/home/a1635246/MDA_MB_231/trimmed/test IDX=/home/a1635246/MDA_MB_231/index/hg38_idx sbatch tophat.sh
-#   # need to specify genome and where the files are then sbatch and the script name
-#our path = /data/rc003/reuben/fastq/rabbit/
+# READPATH=<path to fastq file dir> GENOME=<name of genome assembly> sbatch alignHiC.sh
 
 #SBATCH -p batch
 #SBATCH -N 1
