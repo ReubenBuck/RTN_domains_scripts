@@ -1,0 +1,12 @@
+
+How to convert files raw files to correct format
+
+cat rheMac8rep1.raw | awk '{print substr($1, 4, length($1)) "\t" $2 "\t" $3 "\t" substr($4, 4, length($4)) "\t" $5 "\t" $6}' > rheMac8rep1New.raw 
+
+
+
+/data/rc003/reuben/hicAnalysis/normalisation/tagDirs/scriptRuns$ tagDir=/data/rc003/reuben/hicAnalysis/normalisation/tagDirs/canFam3/rep1/canFam3rep1/ bash homerBGModelBuildNode.sh
+
+
+
+tagDir=/data/rc003/reuben/hicAnalysis/normalisation/tagDirs/mm9/mm9All/ bash /data/rc003/reuben/hicAnalysis/normalisation/tagDirs/scriptRuns/homerBGModelBuildNode.sh
