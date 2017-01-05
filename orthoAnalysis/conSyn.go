@@ -120,6 +120,8 @@ func main() {
 				if err != nil {
 					log.Fatalf("trouble parsing bytes to ints", err)
 				}
+				// so here we can chack if there is any overlap but will it affect our downstream procesing?
+				// need to make sure that the program won't get held up if it can't find the orthologs
 				genome = append(genome, g)
 			}
 

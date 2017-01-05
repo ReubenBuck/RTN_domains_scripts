@@ -67,3 +67,17 @@ binned.genome.reader <- function(genome, bin.size, keep.rate){
 }
 
 
+triangulate <- function(mat){
+  mat[1:nrow(mat),] <- mat[nrow(mat):1,]
+  triangle <- matrix(NA,nrow = nrow(mat),ncol = nrow(mat)*2)
+  for(i in nrow(mat):2){
+    dat <- (diag(mat[i:1,1:i]))
+    triangle[(nrow(mat):1)[i],seq((nrow(mat):1)[i],by = 2,length.out = i)] <- (dat)
+    triangle[(nrow(mat):1)[i],seq((nrow(mat):1)[i] + 1,by = 2,length.out = i)] <- (dat)
+  }
+  triangle[(nrow(mat):1)[1],seq((nrow(mat):1)[1] ,by = 2,length.out = 1)] <- rep(mat[1,1])
+  triangle[(nrow(mat):1)[1],seq((nrow(mat):1)[1] + 1,by = 2,length.out = 1)] <- rep(mat[1,1])
+  return(t(triangle))
+}
+
+
