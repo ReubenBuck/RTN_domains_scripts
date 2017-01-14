@@ -67,6 +67,7 @@ binned.genome.reader <- function(genome, bin.size, keep.rate){
 }
 
 
+# convert squere matrix into another squere matrix with a triangle in the middle
 triangulate <- function(mat){
   mat[1:nrow(mat),] <- mat[nrow(mat):1,]
   triangle <- matrix(NA,nrow = nrow(mat),ncol = nrow(mat)*2)
@@ -79,5 +80,47 @@ triangulate <- function(mat){
   triangle[(nrow(mat):1)[1],seq((nrow(mat):1)[1] + 1,by = 2,length.out = 1)] <- rep(mat[1,1])
   return(t(triangle))
 }
+
+
+
+# calculate insulation score for hi-c data
+insulationScore <- function(mat, squareSize){
+  mat[is.infinite(mat)] <- NA
+  r <- c(1:squareSize)
+  c <- c((squareSize + 1):(squareSize + squareSize))
+  insulate = NULL
+  for(i in 1:(nrow(mat)-(squareSize + squareSize - 1))){
+    insulate <- c(insulate, mean(mat[r,c], na.rm = T))
+    r <- r + 1
+    c <- c + 1
+  }
+  return(insulate)
+}
+
+# report percentage of particular repeat hotspots in reference that overlap particular repeat hotspots in query
+olHotspotSummary <- function(ref.gr, que.gr, repGroups){
+  ol <- as.matrix(findOverlaps(ref.gr, que.gr))
+  dfRepGroup <- data.frame(elementMetadata(ref.gr)$repGroup[ol[,1]], 
+                           elementMetadata(que.gr)$repGroup[ol[,2]])
+  dfDomainID <- data.frame(elementMetadata(ref.gr)$domainID[ol[,1]], 
+                           elementMetadata(que.gr)$domainID[ol[,2]])
+  
+  # go through each combination and count how many unique regions
+  olSumS1 <- matrix(nrow = 4, ncol = 4, dimnames = list(repGroups,repGroups))
+  olTotals <- matrix(nrow = 4, ncol = 1, dimnames = list(repGroups,"totalOL"))
+  
+  for(i in 1:length(repGroups)){
+    for(j in 1:length(repGroups)){
+      olSumS1[i,j] <- length(unique(dfDomainID[dfRepGroup[,1] == repGroups[i] & dfRepGroup[,2] == repGroups[j],1])) / 
+        length(ref.gr[elementMetadata(ref.gr)$repGroup == repGroups[i]])
+    }
+    olTotals[i] <- length(unique(dfDomainID[dfRepGroup[,1] == repGroups[i], 1] )) / length(ref.gr[elementMetadata(ref.gr)$repGroup == repGroups[i]])
+  }
+  return(cbind(olSumS1, olTotals))
+}
+
+
+
+# so it can be 
 
 

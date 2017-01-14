@@ -149,13 +149,13 @@ func main() {
 		if len(genomes[1]) > genomeI+1 {
 			upper = genomes[1][genomeI+1].orthoName
 		} else {
-			upper = genomes[1][genomeI-1].orthoName
+			upper = "none"
 		}
 
 		if genomeI-1 >= 0 {
 			lower = genomes[1][genomeI-1].orthoName
 		} else {
-			lower = genomes[1][genomeI+1].orthoName
+			lower = "none"
 		}
 
 		refOutStr := []string{
@@ -178,60 +178,61 @@ func main() {
 		refOutStr[8] = strconv.Itoa(genomes[0][i].start)
 		refOutStr[9] = strconv.Itoa(genomes[0][i].end)
 
-		if genomes[0][i-1].orthoName == lower &&
-			genomes[0][i].chr == genomes[0][i-1].chr &&
-			genomes[1][genomeI].chr == genomes[1][genomeI-1].chr {
-			// create the string then send it to the writer
-			wRef.WriteString(strings.Join(refOutStr, "\t"))
+		if genomes[0][i-1].orthoName == lower {
+			if genomes[0][i].chr == genomes[0][i-1].chr &&
+				genomes[1][genomeI].chr == genomes[1][genomeI-1].chr {
+				// create the string then send it to the writer
+				wRef.WriteString(strings.Join(refOutStr, "\t"))
 
-			queOutStr := []string{
-				genomes[1][genomeI-1].orthoName + "_" + genomes[1][genomeI].orthoName,
-				genomes[1][genomeI-1].chr,
-				"",
-				"",
-				genomes[1][genomeI-1].strand,
-				genomes[1][genomeI-1].orthoName,
-				genomes[1][genomeI-1].ensName,
-				genomes[1][genomeI].chr,
-				"",
-				"",
-				genomes[1][genomeI].strand,
-				genomes[1][genomeI].orthoName,
-				genomes[1][genomeI].ensName + "\n",
+				queOutStr := []string{
+					genomes[1][genomeI-1].orthoName + "_" + genomes[1][genomeI].orthoName,
+					genomes[1][genomeI-1].chr,
+					"",
+					"",
+					genomes[1][genomeI-1].strand,
+					genomes[1][genomeI-1].orthoName,
+					genomes[1][genomeI-1].ensName,
+					genomes[1][genomeI].chr,
+					"",
+					"",
+					genomes[1][genomeI].strand,
+					genomes[1][genomeI].orthoName,
+					genomes[1][genomeI].ensName + "\n",
+				}
+				queOutStr[2] = strconv.Itoa(genomes[1][genomeI-1].start)
+				queOutStr[3] = strconv.Itoa(genomes[1][genomeI-1].end)
+				queOutStr[8] = strconv.Itoa(genomes[1][genomeI].start)
+				queOutStr[9] = strconv.Itoa(genomes[1][genomeI].end)
+
+				wQue.WriteString(strings.Join(queOutStr, "\t"))
 			}
-			queOutStr[2] = strconv.Itoa(genomes[1][genomeI-1].start)
-			queOutStr[3] = strconv.Itoa(genomes[1][genomeI-1].end)
-			queOutStr[8] = strconv.Itoa(genomes[1][genomeI].start)
-			queOutStr[9] = strconv.Itoa(genomes[1][genomeI].end)
+		} else if genomes[0][i-1].orthoName == upper {
+			if genomes[0][i].chr == genomes[0][i-1].chr &&
+				genomes[1][genomeI].chr == genomes[1][genomeI+1].chr {
+				wRef.WriteString(strings.Join(refOutStr, "\t"))
 
-			wQue.WriteString(strings.Join(queOutStr, "\t"))
+				queOutStr := []string{
+					genomes[1][genomeI+1].orthoName + "_" + genomes[1][genomeI].orthoName,
+					genomes[1][genomeI+1].chr,
+					"",
+					"",
+					genomes[1][genomeI+1].strand,
+					genomes[1][genomeI+1].orthoName,
+					genomes[1][genomeI+1].ensName,
+					genomes[1][genomeI].chr,
+					"",
+					"",
+					genomes[1][genomeI].strand,
+					genomes[1][genomeI].orthoName,
+					genomes[1][genomeI].ensName + "\n",
+				}
+				queOutStr[2] = strconv.Itoa(genomes[1][genomeI+1].start)
+				queOutStr[3] = strconv.Itoa(genomes[1][genomeI+1].end)
+				queOutStr[8] = strconv.Itoa(genomes[1][genomeI].start)
+				queOutStr[9] = strconv.Itoa(genomes[1][genomeI].end)
 
-		} else if genomes[0][i-1].orthoName == upper &&
-			genomes[0][i].chr == genomes[0][i-1].chr &&
-			genomes[1][genomeI].chr == genomes[1][genomeI+1].chr {
-			wRef.WriteString(strings.Join(refOutStr, "\t"))
-
-			queOutStr := []string{
-				genomes[1][genomeI+1].orthoName + "_" + genomes[1][genomeI].orthoName,
-				genomes[1][genomeI+1].chr,
-				"",
-				"",
-				genomes[1][genomeI+1].strand,
-				genomes[1][genomeI+1].orthoName,
-				genomes[1][genomeI+1].ensName,
-				genomes[1][genomeI].chr,
-				"",
-				"",
-				genomes[1][genomeI].strand,
-				genomes[1][genomeI].orthoName,
-				genomes[1][genomeI].ensName + "\n",
+				wQue.WriteString(strings.Join(queOutStr, "\t"))
 			}
-			queOutStr[2] = strconv.Itoa(genomes[1][genomeI+1].start)
-			queOutStr[3] = strconv.Itoa(genomes[1][genomeI+1].end)
-			queOutStr[8] = strconv.Itoa(genomes[1][genomeI].start)
-			queOutStr[9] = strconv.Itoa(genomes[1][genomeI].end)
-
-			wQue.WriteString(strings.Join(queOutStr, "\t"))
 		}
 		//fmt.Println(i)
 

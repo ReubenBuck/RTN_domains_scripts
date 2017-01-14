@@ -1,6 +1,13 @@
 ### A script to extract bins as hotspots
 ### we could give the same ids to adjacent bins that make up the same regions
 ### just take the min coord and max coord for stuff with the same id
+
+## needs to be converted to executable type script
+
+
+
+### create a naming convention. 
+
 setwd(dir = "~/Desktop/RTN_domains/")
 rm(list = ls())
 
@@ -12,7 +19,7 @@ sizes <- 50e3
 
 rGroups <- c("ancient", "new_SINE", "new_L1", "old_L1")
 
-genome = "rheMac3"
+genome = "mm9"
 
 Gstar = TRUE
 
@@ -20,6 +27,9 @@ sizesGstat <- NULL
 noX = TRUE
 
 load(file = paste("~/Desktop/RTN_domains/R_objects/rmskMapTables/binSizes/", genome, "/repData_", genome, "_",as.integer(sizes),"_size.RData", sep = ""))
+
+
+
 
 if(noX){
   chrX <- (1:nrow(repDataList$bin))[ repDataList$bin$chr == "chrX"]
@@ -50,7 +60,9 @@ domainList = NULL
 pAdjMethod = "fdr"
 alpha <- .01
 
+
 statG <- binGstat
+domainAll <- NULL
 for(i in 1:4){
   padj <- p.adjust(2*pnorm(-abs(statG[,rGroups[i]])),method = pAdjMethod)
   #plot((padj < .05)[1:500], type = "l")
@@ -59,12 +71,32 @@ for(i in 1:4){
   section <- statG2[statG2$padj < alpha,]
   section$adjacent = c(1,(section$start[2:nrow(section)] - section$start[1:(nrow(section)-1)])/sizes - 1)
   
-  regions = data.frame(chr = section$chr[section$adjacent != 0], start = section$start[section$adjacent != 0], 
-                       end = section$end[c(section$adjacent[2:nrow(section)] != 0, TRUE)])
+  #regions = data.frame(chr = section$chr[section$adjacent != 0], start = section$start[section$adjacent != 0], 
+  #end = section$end[c(section$adjacent[2:nrow(section)] != 0, TRUE)])
   
-  domainList <- c(domainList, list(regions))
+  #domainList <- c(domainList, list(regions))
+  a = 0
+  for(j in 1:nrow(section)){
+    if(section$adjacent[j] != 0){
+      a = a + 1
+    }
+    section$group[j] <- a
+  }
+  domains <- data.frame(chr = section$chr, 
+                        start = section$start, 
+                        end = section$end, 
+                        domainID = paste(rGroups[i], 1:nrow(section), section$group, sep="_")
+  )
+  domainAll <- rbind(domainAll,domains)
 }
-names(domainList) = rGroups
+
+
+write.table(domainAll, paste("data/repeatHotspot/", genome, "Hotspots.bed"),quote = FALSE,sep = "\t",row.names = FALSE,col.names = FALSE)
+
+
+
+#names(domainList) = rGroups
+
 
 
 chrChoice = "chr1"
