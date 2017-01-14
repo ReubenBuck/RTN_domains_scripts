@@ -1,8 +1,12 @@
-
-rm(list=ls())
-
-setwd("~/Desktop/RTN_domains/")
 library(GenomicRanges)
+library(devtools)
+setwd("~/Desktop/RTN_domains/")
+
+rm(list = ls())
+
+devtools::source_url("http://raw.githubusercontent.com/ReubenBuck/RTN_domains_scripts/master/rtnDomainFunctions.R")
+
+
 
 
 # seperate out IDs
@@ -15,6 +19,21 @@ s1name <- "canFam3"
 s2name <- "mm9"
 
 repGroups <- c("ancient", "new_SINE", "new_L1", "old_L1")
+repCols <- c("darkblue", "aquamarine3", "purple", "red")
+
+
+load(file = paste("R_objects/rmskMapTables/",s1name,"/repData_",s1name,"_50000.RData", sep = ""))
+s1DataList <- repDataList
+s1bin.gr <- GRanges(seqnames = Rle(s1DataList$bin$chr),
+                    ranges = IRanges(start = s1DataList$bin$start, end = s1DataList$bin$end),
+                    binID = s1DataList$bin$binID)
+
+load(file = paste("R_objects/rmskMapTables/",s2name,"/repData_",s2name,"_50000.RData", sep = ""))
+s2DataList <- repDataList
+s2bin.gr <- GRanges(seqnames = Rle(s2DataList$bin$chr),
+                    ranges = IRanges(start = s2DataList$bin$start, end = s2DataList$bin$end),
+                    binID = s2DataList$bin$binID)
+
 
 s1 <- read.table("data/repeatHotspot/ canFam3 Hotspots.bed", 
                  col.names = c("chr", "start", "end", "domainID"),
@@ -107,106 +126,111 @@ legend("topright", legend = c(paste(s1name, "to", s2name), paste(s2name, "to", s
 # be careful not to use s2_s1 as a proxy for s2
 # we can get our s2 meausres from s2 directly
 
-olSummary <- function(ref.gr, que.gr, repGroups){
-  ol <- as.matrix(findOverlaps(ref.gr, que.gr))
-  dfRepGroup <- data.frame(elementMetadata(ref.gr)$repGroup[ol[,1]], 
-                           elementMetadata(que.gr)$repGroup[ol[,2]])
-  dfDomainID <- data.frame(elementMetadata(ref.gr)$domainID[ol[,1]], 
-                           elementMetadata(que.gr)$domainID[ol[,2]])
+barplot(olHotspotSummary(s2.gr, s1_s2.gr, repGroups), beside = TRUE, col = repCols, ylim = c(0,1),
+        xlab = "reference repeat groups", ylab = "overlaping hotspots (proportion of reference)",
+        main = paste(s2name, "overlapping", s1name, "repeat hotspots"))
+legend("topright", legend = repGroups, fill = repCols, title = "query repeat groups", bty = "n")
+
+barplot(olHotspotSummary(s2.gr, s2.gr, repGroups), beside = TRUE, col = repCols, ylim = c(0,1),
+        xlab = "reference repeat groups", ylab = "overlaping hotspots (proportion of reference)",
+        main = paste(s2name, "self overlap"))
+legend("topright", legend = repGroups, fill = repCols, title = "query repeat groups", bty = "n")
+
+barplot(olHotspotSummary(s1.gr, s2_s1.gr, repGroups), beside = TRUE, col = repCols, ylim = c(0,1),
+        xlab = "reference repeat groups", ylab = "overlaping hotspots (proportion of reference)",
+        main = paste(s1name, "overlapping", s2name, "repeat hotspots"))
+legend("topright", legend = repGroups, fill = repCols, title = "query repeat groups", bty = "n")
+
+barplot(olHotspotSummary(s1.gr, s1.gr, repGroups), beside = TRUE, col = repCols, ylim = c(0,1),
+        xlab = "reference repeat groups", ylab = "overlaping hotspots (proportion of reference)",
+        main = paste(s1name, "self overlap"))
+legend("topright", legend = repGroups, fill = repCols, title = "query repeat groups", bty = "n")
+
+
+
+# maybe get a function to pull regions. 
+
+# so groups should be maintained in the ref
+# pull out groups that have a high proportion of self overlap
+
+
+
+ref.gr <- s1.gr
+que.gr <- s2_s1.gr
+
+ol <- as.matrix(findOverlaps(ref.gr, que.gr))
+
+dfRepGroup <- data.frame(elementMetadata(ref.gr)$repGroup[ol[,1]], 
+                         elementMetadata(que.gr)$repGroup[ol[,2]])
+
+#for(i in 1:length(repGroups))
   
-  # go through each combination and count how many unique regions
-  olSumS1 <- matrix(nrow = 4, ncol = 4, dimnames = list(repGroups,repGroups))
-  olTotals <- matrix(nrow = 4, ncol = 1, dimnames = list(repGroups,"totalOL"))
+i = 2
+ 
+conHotspot.gr <- ref.gr[unique(ol[dfRepGroup[,1] == repGroups[i] & dfRepGroup[,1] == repGroups[i], 1])]
 
-  for(i in 1:length(repGroups)){
-    for(j in 1:length(repGroups)){
-      olSumS1[i,j] <- length(unique(dfDomainID[dfRepGroup[,1] == repGroups[i] & dfRepGroup[,2] == repGroups[j],1])) / 
-        length(ref.gr[elementMetadata(ref.gr)$repGroup == repGroups[i]])
-    }
-    olTotals[i] <- length(unique(dfDomainID[dfRepGroup[,1] == repGroups[i], 1] )) / length(ref.gr[elementMetadata(ref.gr)$repGroup == repGroups[i]])
-  }
-  return(cbind(olSumS1, olTotals))
-}
+tabRef <- table(elementMetadata(ref.gr[elementMetadata(ref.gr)$repGroup == repGroups[i]])$hotspotGroup)
+tabCon <- table(elementMetadata(conHotspot.gr)$hotspotGroup)
 
+tabConScores <- tabCon/tabRef[names(tabRef) %in% names(tabCon)][names(tabCon)]
 
-olSummary(s2.gr, s1_s2.gr, repGroups)
+conGroups <- names(tabConScores[tabConScores >= .7])
+midGroups <- names(tabConScores[tabConScores < .7 & tabConScores >= .3])
+difGroups <- c(names(tabConScores[tabConScores < .3]), names(tabRef[!(names(tabRef) %in% names(tabCon))]))
 
 
+conDomainQue <- s1_s2.gr[elementMetadata(s1_s2.gr)$hotspotGroup %in% conGroups]
+midDomainQue <- s1_s2.gr[elementMetadata(s1_s2.gr)$hotspotGroup %in% midGroups]
+difDomainQue <- s1_s2.gr[elementMetadata(s1_s2.gr)$hotspotGroup %in% difGroups]
 
 
-
-ol <- as.matrix(findOverlaps(s1.gr, s2_s1.gr))
-dfRepGroup <- data.frame(elementMetadata(s1.gr)$repGroup[ol[,1]], elementMetadata(s2_s1.gr)$repGroup[ol[,2]])
-dfDomainID <- data.frame(elementMetadata(s1.gr)$domainID[ol[,1]], elementMetadata(s2_s1.gr)$domainID[ol[,2]])
-
-# go through each combination and count how many unique regions
-olSumS1 <- matrix(nrow = 4, ncol = 4, dimnames = list(repGroups,repGroups))
-#olSumS2_S1 <- matrix(nrow = 4, ncol = 4, dimnames = list(repGroups,repGroups))
-
-for(i in 1:length(repGroups)){
-  for(j in 1:length(repGroups)){
-    olSumS1[i,j] <- length(unique(dfDomainID[dfRepGroup[,1] == repGroups[i] & dfRepGroup[,2] == repGroups[j],1])) / length(s1.gr[elementMetadata(s1.gr)$repGroup == repGroups[i]])
-#    olSumS2_S1[i,j] <- length(unique(dfDomainID[dfRepGroup[,1] == repGroups[i] & dfRepGroup[,2] == repGroups[j],2])) / length(s2_s1.gr[elementMetadata(s2_s1.gr)$repGroup == repGroups[i]])
-  }
-}
+conDomainRef <- s1.gr[elementMetadata(s1.gr)$hotspotGroup %in% conGroups]
+midDomainRef <- s1.gr[elementMetadata(s1.gr)$hotspotGroup %in% midGroups]
+difDomainRef <- s1.gr[elementMetadata(s1.gr)$hotspotGroup %in% difGroups]
 
 
-barplot(olSumS1, beside = TRUE, ylim = c(0,1))
+s2RepsCon <- data.frame(domains = "s2RepsCon", 
+                        repInsertion = s2DataList$repSummary[s2DataList$repSummary$binID %in% elementMetadata(subsetByOverlaps(s2bin.gr, conDomainQue))$binID, repGroups[i]])
+s1RepsCon <- data.frame(domains = "s1RepsCon",
+                        repInsertion = s1DataList$repSummary[s1DataList$repSummary$binID %in% elementMetadata(subsetByOverlaps(s1bin.gr, conDomainRef))$binID, repGroups[i]])
+
+s2RepsMid <- data.frame(domains = "s2RepsMid",
+                        repInsertion = s2DataList$repSummary[s2DataList$repSummary$binID %in% elementMetadata(subsetByOverlaps(s2bin.gr, midDomainQue))$binID, repGroups[i]])
+s1RepsMid <- data.frame(domains = "s1RepsMid",
+                        repInsertion = s1DataList$repSummary[s1DataList$repSummary$binID %in% elementMetadata(subsetByOverlaps(s1bin.gr, midDomainRef))$binID, repGroups[i]])
+
+s2RepsDif <- data.frame(domains = "s2RepsDif",
+                        repInsertion = s2DataList$repSummary[s2DataList$repSummary$binID %in% elementMetadata(subsetByOverlaps(s2bin.gr, difDomainQue))$binID, repGroups[i]])
+s1RepsDif <- data.frame(domains = "s1RepsDif",
+                        repInsertion = s1DataList$repSummary[s1DataList$repSummary$binID %in% elementMetadata(subsetByOverlaps(s1bin.gr, difDomainRef))$binID, repGroups[i]])
+
+dfSummary <- rbind(s1RepsDif, s2RepsDif, s1RepsMid, s2RepsMid, s1RepsCon, s2RepsCon)
+
+boxplot(dfSummary$repInsertion ~ dfSummary$domains, outline=FALSE)
+stripchart(dfSummary$repInsertion ~ dfSummary$domains, vertical = TRUE, method = "jitter", pch = 16, cex = .3, jitter = .35, add = TRUE)
 
 
+# plan now is to make the results cleaner
+# when we pull regions make sure we are getting the right ones and not the ones beside them.
 
 
-olSumS2_S1
-barplot(olSumS2_S1, beside = TRUE, ylim = c(0,1))
+# at least here there is something now to compare
 
 
-# the proportion of things that are overlapped
-olTotals <- data.frame(s1 = rep(NA,4), s2_s1 = rep(NA,4), row.names = repGroups)
-for(i in 1:length(repGroups)){
-  olTotals$s1[i] <- length(unique(dfDomainID[dfRepGroup[,1] == repGroups[i], 1] )) / length(s1.gr[elementMetadata(s1.gr)$repGroup == repGroups[i]])
-  
-  olTotals$s2_s1[i] <- length(unique(dfDomainID[dfRepGroup[,2] == repGroups[i], 2] )) / length(s2_s1.gr[elementMetadata(s2_s1.gr)$repGroup == repGroups[i]])
-  
-}
+# may be good to get percentile rank scores
 
+# the problem is the whole apples and oranges thing
 
-barplot(t(olTotals), beside = TRUE, ylim = c(0,1) )
-
-### lets look at self overlap
-
-ol <- as.matrix(findOverlaps(s1.gr, s1.gr))
-dfRepGroup <- data.frame(elementMetadata(s1.gr)$repGroup[ol[,1]], elementMetadata(s1.gr)$repGroup[ol[,2]])
-dfDomainID <- data.frame(elementMetadata(s1.gr)$domainID[ol[,1]], elementMetadata(s1.gr)$domainID[ol[,2]])
-
-
-for(i in 1:length(repGroups)){
-  for(j in 1:length(repGroups)){
-    olSumS1[i,j] <- length(unique(dfDomainID[dfRepGroup[,1] == repGroups[i] & dfRepGroup[,2] == repGroups[j],1])) / length(s1.gr[elementMetadata(s1.gr)$repGroup == repGroups[i]])
- #   olSumS2_S1[i,j] <- length(unique(dfDomainID[dfRepGroup[,1] == repGroups[i] & dfRepGroup[,2] == repGroups[j],2])) / length(s2_s1.gr[elementMetadata(s2_s1.gr)$repGroup == repGroups[i]])
-  }
-}
-olSumS1
-barplot(olSumS1, beside = TRUE)
-
-
-ol <- as.matrix(findOverlaps(s2_s1.gr, s2_s1.gr))
-dfRepGroup <- data.frame(elementMetadata(s2_s1.gr)$repGroup[ol[,1]], elementMetadata(s2_s1.gr)$repGroup[ol[,2]])
-dfDomainID <- data.frame(elementMetadata(s2_s1.gr)$domainID[ol[,1]], elementMetadata(s2_s1.gr)$domainID[ol[,2]])
-
-
-for(i in 1:length(repGroups)){
-  for(j in 1:length(repGroups)){
-      olSumS2_S1[i,j] <- length(unique(dfDomainID[dfRepGroup[,1] == repGroups[i] & dfRepGroup[,2] == repGroups[j],2])) / length(s2_s1.gr[elementMetadata(s2_s1.gr)$repGroup == repGroups[i]])
-  }
-}
-olSumS2_S1
+# get the reference query stuff sorted. 
 
 
 
 
 
+ol[elementMetadata(ref.gr)$hotspotGroup[ol[,1]] %in% midGroups, 2]
 
 
+que.gr[ol[,2]]
 
 
 
