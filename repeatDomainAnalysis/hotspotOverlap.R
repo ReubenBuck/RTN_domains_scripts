@@ -2,11 +2,15 @@ library(GenomicRanges)
 library(devtools)
 setwd("~/Desktop/RTN_domains/")
 
+options(stringsAsFactors = TRUE)
+
 rm(list = ls())
 
 devtools::source_url("http://raw.githubusercontent.com/ReubenBuck/RTN_domains_scripts/master/rtnDomainFunctions.R")
 
 
+# might be worth also downloadign the seq info for each species.
+# this will stop the false positive warning messages.
 
 
 # seperate out IDs
@@ -154,60 +158,82 @@ legend("topright", legend = repGroups, fill = repCols, title = "query repeat gro
 # pull out groups that have a high proportion of self overlap
 
 
+# can now pull out corrsponding groups now its time to turn it into a function
+# also it helps to supply scaled data
 
-ref.gr <- s1.gr
-que.gr <- s2_s1.gr
+s1Corresponding <- extractCorrespondingHotspots(ref.gr = s1.gr,que_ref.gr = s2_s1.gr, ref_que.gr = s1_s2.gr,repGroups = repGroups)
 
-ol <- as.matrix(findOverlaps(ref.gr, que.gr))
+s2Corresponding <- extractCorrespondingHotspots(ref.gr = s2.gr,que_ref.gr = s1_s2.gr, ref_que.gr = s2_s1.gr,repGroups = repGroups)
 
-dfRepGroup <- data.frame(elementMetadata(ref.gr)$repGroup[ol[,1]], 
-                         elementMetadata(que.gr)$repGroup[ol[,2]])
 
-#for(i in 1:length(repGroups))
+
+hist(width(s1Corresponding$que$dif$ancient))
+
+# how to extract repeat content.
+
+datS1 <- s1DataList
+datS2 <- s2DataList
+
+datS1.gr <- GRanges(seqnames = Rle(s1DataList$bin$chr),
+                    ranges = IRanges(start = s1DataList$bin$start, end = s1DataList$bin$end),
+                    binID = s1DataList$repSummary$binID
+                    )
+for(i in 1:length(repGroups)){
+  elementMetadata(datS1.gr)[,repGroups[i]] <- scale((s1DataList$repSummary[,repGroups[i]]/s1DataList$bin$Known)*10000)
+}
+
+datS2.gr <- GRanges(seqnames = Rle(s2DataList$bin$chr),
+                    ranges = IRanges(start = s2DataList$bin$start, end = s2DataList$bin$end),
+                    binID = s2DataList$repSummary$binID
+)
+for(i in 1:length(repGroups)){
+  elementMetadata(datS2.gr)[,repGroups[i]] <- scale((s2DataList$repSummary[,repGroups[i]]/s2DataList$bin$Known)*10000)
+}
+
+
+
+
+s1_s2_insertionRate <- extractInsertionRates(ref.gr = datS1.gr, que.gr = datS2.gr, refCorresponding = s1Corresponding, repGroups = repGroups)
+s2_s1_insertionRate <- extractInsertionRates(ref.gr = datS2.gr, que.gr = datS1.gr, refCorresponding = s2Corresponding, repGroups = repGroups)
+
+
+pdf(file = paste("plots/hotspotOverlap/", s1name,"_",s2name,"_insertionRates.pdf", sep = ""), width = 5,height = 10, onefile = TRUE)
+layout(matrix(c(1,2,3,4), nrow = 4))
+par(mar = c(3,0,0,0), oma = c(5,5,5,5))
+for(i in 1:length(repGroups)){
+  dat <- filter(s1_s2_insertionRate, repGroup == repGroups[i] & (conState == "con" | conState == "dif"))
+  dat$conState <- droplevels(dat$conState)
+  boxplot(Z_score ~ genome + conState, data = dat, las = 2, outline = FALSE, notch = FALSE, xaxt = "n", col = c("white","grey80"))
+  axis(side = 1,at = c(1.5,3.5), labels = c("conserved hotspots", "differential hotspots"))
+  legend("topright", legend = repGroups[i], bty = "n")
+  stripchart(Z_score ~ genome + conState, data = dat, add = TRUE, vert = TRUE,
+             method = "jitter", jitter = .35, pch = 16, cex = .3, col = repCols[i])
   
-i = 2
- 
-conHotspot.gr <- ref.gr[unique(ol[dfRepGroup[,1] == repGroups[i] & dfRepGroup[,1] == repGroups[i], 1])]
+}
+mtext("Insertion rate (Z score)", side = 2, line = 2.5, outer = T)
 
-tabRef <- table(elementMetadata(ref.gr[elementMetadata(ref.gr)$repGroup == repGroups[i]])$hotspotGroup)
-tabCon <- table(elementMetadata(conHotspot.gr)$hotspotGroup)
-
-tabConScores <- tabCon/tabRef[names(tabRef) %in% names(tabCon)][names(tabCon)]
-
-conGroups <- names(tabConScores[tabConScores >= .7])
-midGroups <- names(tabConScores[tabConScores < .7 & tabConScores >= .3])
-difGroups <- c(names(tabConScores[tabConScores < .3]), names(tabRef[!(names(tabRef) %in% names(tabCon))]))
+title(main = paste(s1name,"hotspots mapped to" ,s2name),outer = TRUE)
 
 
-conDomainQue <- s1_s2.gr[elementMetadata(s1_s2.gr)$hotspotGroup %in% conGroups]
-midDomainQue <- s1_s2.gr[elementMetadata(s1_s2.gr)$hotspotGroup %in% midGroups]
-difDomainQue <- s1_s2.gr[elementMetadata(s1_s2.gr)$hotspotGroup %in% difGroups]
 
+layout(matrix(c(1,2,3,4), nrow = 4))
+par(mar = c(3,0,0,0), oma = c(5,5,5,5))
+for(i in 1:length(repGroups)){
+  dat <- filter(s2_s1_insertionRate, repGroup == repGroups[i] & (conState == "con" | conState == "dif"))
+  dat$conState <- droplevels(dat$conState)
+  boxplot(Z_score ~ genome + conState, data = dat, las = 2, outline = FALSE, notch = FALSE, xaxt = "n", col = c("white","grey80"))
+  axis(side = 1,at = c(1.5,3.5), labels = c("conserved", "differential"))
+  legend("topright", legend = repGroups[i], bty = "n")
+  
+  stripchart(Z_score ~ genome + conState, data = dat, add = TRUE, vert = TRUE,
+             method = "jitter", jitter = .35, pch = 16, cex = .3, col = repCols[i])
+  
+}
+mtext("Insertion rate (Z score)", side = 2, line = 2.5, outer = T)
 
-conDomainRef <- s1.gr[elementMetadata(s1.gr)$hotspotGroup %in% conGroups]
-midDomainRef <- s1.gr[elementMetadata(s1.gr)$hotspotGroup %in% midGroups]
-difDomainRef <- s1.gr[elementMetadata(s1.gr)$hotspotGroup %in% difGroups]
+title(main = paste(s2name,"hotspots mapped to" ,s1name),outer = TRUE)
+dev.off()
 
-
-s2RepsCon <- data.frame(domains = "s2RepsCon", 
-                        repInsertion = s2DataList$repSummary[s2DataList$repSummary$binID %in% elementMetadata(subsetByOverlaps(s2bin.gr, conDomainQue))$binID, repGroups[i]])
-s1RepsCon <- data.frame(domains = "s1RepsCon",
-                        repInsertion = s1DataList$repSummary[s1DataList$repSummary$binID %in% elementMetadata(subsetByOverlaps(s1bin.gr, conDomainRef))$binID, repGroups[i]])
-
-s2RepsMid <- data.frame(domains = "s2RepsMid",
-                        repInsertion = s2DataList$repSummary[s2DataList$repSummary$binID %in% elementMetadata(subsetByOverlaps(s2bin.gr, midDomainQue))$binID, repGroups[i]])
-s1RepsMid <- data.frame(domains = "s1RepsMid",
-                        repInsertion = s1DataList$repSummary[s1DataList$repSummary$binID %in% elementMetadata(subsetByOverlaps(s1bin.gr, midDomainRef))$binID, repGroups[i]])
-
-s2RepsDif <- data.frame(domains = "s2RepsDif",
-                        repInsertion = s2DataList$repSummary[s2DataList$repSummary$binID %in% elementMetadata(subsetByOverlaps(s2bin.gr, difDomainQue))$binID, repGroups[i]])
-s1RepsDif <- data.frame(domains = "s1RepsDif",
-                        repInsertion = s1DataList$repSummary[s1DataList$repSummary$binID %in% elementMetadata(subsetByOverlaps(s1bin.gr, difDomainRef))$binID, repGroups[i]])
-
-dfSummary <- rbind(s1RepsDif, s2RepsDif, s1RepsMid, s2RepsMid, s1RepsCon, s2RepsCon)
-
-boxplot(dfSummary$repInsertion ~ dfSummary$domains, outline=FALSE)
-stripchart(dfSummary$repInsertion ~ dfSummary$domains, vertical = TRUE, method = "jitter", pch = 16, cex = .3, jitter = .35, add = TRUE)
 
 
 # plan now is to make the results cleaner
@@ -222,44 +248,6 @@ stripchart(dfSummary$repInsertion ~ dfSummary$domains, vertical = TRUE, method =
 # the problem is the whole apples and oranges thing
 
 # get the reference query stuff sorted. 
-
-
-
-
-
-ol[elementMetadata(ref.gr)$hotspotGroup[ol[,1]] %in% midGroups, 2]
-
-
-que.gr[ol[,2]]
-
-
-
-# from these results it seems the distribtuion of newL1s is almost random
-
-
-# the conserved one has to be the same family of element overlapping. 
-
-# the sizes of the groups 
-
-df <- data.frame(s1 = elementMetadata(s1.gr)$repGroup[ol[,1]], s2_s1 = elementMetadata(s2_s1.gr)$repGroup[ol[,2]])
-table(df)
-
-# 
-table(elementMetadata(s1.gr)$repGroup)
-table(elementMetadata(s2_s1.gr)$repGroup)
-
-# 
-table(elementMetadata(s2_s1.gr[-ol[,2]])$repGroup)
-table(elementMetadata(s1.gr[-ol[,1]])$repGroup)
-
-# are we counting the number of regions or the number of overlaps
-# might be better to do the number of regions
-
-#find conserved regions
-
-canFam3_mm9canFameOl <- as.matrix(findOverlaps(canFam3gr, mm9_canFam3gr))
-
-
 
 
 

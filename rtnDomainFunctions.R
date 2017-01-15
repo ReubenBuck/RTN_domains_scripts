@@ -120,7 +120,83 @@ olHotspotSummary <- function(ref.gr, que.gr, repGroups){
 }
 
 
+# Function designed to extract corresponding coordinates between two species according to a reference
+# the reference hotspots
+# the query hotspots in the reference genome
+# the reference hotspots mapped to the query genome
 
-# so it can be 
+extractCorrespondingHotspots <- function(ref.gr, que_ref.gr, ref_que.gr, repGroups){ 
+  
+  repList <- NULL
+  for(i in 1:length(repGroups)){
+    repList <- c(repList, list(NULL))
+  }
+  names(repList) = repGroups
+  
+  queList <- list(con = repList, mid = repList, dif= repList)
+  refList <- list(con = repList, mid = repList, dif= repList)
+  
+  hotspotList <- list(ref = refList, que = queList)
+  
+  ol <- as.matrix(findOverlaps(ref.gr, que_ref.gr))
+  
+  dfRepGroup <- data.frame(elementMetadata(ref.gr)$repGroup[ol[,1]], 
+                           elementMetadata(que_ref.gr)$repGroup[ol[,2]])
+  
+  
+  for(i in 1:length(repGroups)){
+    
+    
+    conHotspot.gr <- ref.gr[unique(ol[dfRepGroup[,1] == repGroups[i] & dfRepGroup[,1] == repGroups[i], 1])]
+    
+    tabRef <- table(elementMetadata(ref.gr[elementMetadata(ref.gr)$repGroup == repGroups[i]])$hotspotGroup)
+    tabCon <- table(elementMetadata(conHotspot.gr)$hotspotGroup)
+    
+    tabConScores <- tabCon/tabRef[names(tabRef) %in% names(tabCon)][names(tabCon)]
+    
+    # here we get the names of groups
+    conGroups <- names(tabConScores[tabConScores >= .7])
+    midGroups <- names(tabConScores[tabConScores < .7 & tabConScores >= .3])
+    difGroups <- c(names(tabConScores[tabConScores < .3]), names(tabRef[!(names(tabRef) %in% names(tabCon))]))
+    
+    # here we extract the coordinates in the que species
+    conDomainQue <- ref_que.gr[elementMetadata(ref_que.gr)$hotspotGroup %in% conGroups]
+    midDomainQue <- ref_que.gr[elementMetadata(ref_que.gr)$hotspotGroup %in% midGroups]
+    difDomainQue <- ref_que.gr[elementMetadata(ref_que.gr)$hotspotGroup %in% difGroups]
+    
+    hotspotList$que$con[[repGroups[i]]] <- conDomainQue
+    hotspotList$que$mid[[repGroups[i]]] <- midDomainQue
+    hotspotList$que$dif[[repGroups[i]]] <- difDomainQue
+    
+    
+    # here we extract the coordinates in the ref species
+    conDomainRef <- ref.gr[elementMetadata(ref.gr)$hotspotGroup %in% conGroups]
+    midDomainRef <- ref.gr[elementMetadata(ref.gr)$hotspotGroup %in% midGroups]
+    difDomainRef <- ref.gr[elementMetadata(ref.gr)$hotspotGroup %in% difGroups]
+    
+    hotspotList$ref$con[[repGroups[i]]] <- conDomainRef
+    hotspotList$ref$mid[[repGroups[i]]] <- midDomainRef
+    hotspotList$ref$dif[[repGroups[i]]] <- difDomainRef
+    
+  }
+  
+  return(hotspotList)
+  
+}
 
+extractInsertionRates <- function(ref.gr, que.gr, refCorresponding, repGroups){
+  # input reference and query binned granges with TE content in metadata
+  insertionRate <- NULL
+  for(genome in c("ref", "que")){
+    genome.gr <- get(paste(genome, ".gr", sep = ""))
+    for(conState in c("con", "mid", "dif")){
+      for(rep in repGroups){
+        ol <- as.matrix(elementMetadata(subsetByOverlaps(genome.gr,refCorresponding[[genome]][[conState]][[rep]]))[rep])[,1]
+        df <- data.frame(repGroup = rep, genome = genome, conState = conState, Z_score = ol)
+        insertionRate <- rbind(insertionRate, df)
+      }
+    }
+  }
+  return(insertionRate)
+}
 
