@@ -1,5 +1,6 @@
 library(GenomicRanges)
 library(devtools)
+library(dplyr)
 setwd("~/Desktop/RTN_domains/")
 
 options(stringsAsFactors = TRUE)
@@ -130,25 +131,26 @@ legend("topright", legend = c(paste(s1name, "to", s2name), paste(s2name, "to", s
 # be careful not to use s2_s1 as a proxy for s2
 # we can get our s2 meausres from s2 directly
 
+pdf(file = paste("plots/hotspotOverlap/", s2name, "_",s1name,"_overlap.pdf"), height = 12, width = 6, onefile = TRUE)
+layout(c(1,2))
 barplot(olHotspotSummary(s2.gr, s1_s2.gr, repGroups), beside = TRUE, col = repCols, ylim = c(0,1),
         xlab = "reference repeat groups", ylab = "overlaping hotspots (proportion of reference)",
         main = paste(s2name, "overlapping", s1name, "repeat hotspots"))
-legend("topright", legend = repGroups, fill = repCols, title = "query repeat groups", bty = "n")
+legend("topright", legend = repGroups, fill = repCols, title = "query repeat groups", bty = "n",cex = .75)
 
 barplot(olHotspotSummary(s2.gr, s2.gr, repGroups), beside = TRUE, col = repCols, ylim = c(0,1),
         xlab = "reference repeat groups", ylab = "overlaping hotspots (proportion of reference)",
         main = paste(s2name, "self overlap"))
-legend("topright", legend = repGroups, fill = repCols, title = "query repeat groups", bty = "n")
 
 barplot(olHotspotSummary(s1.gr, s2_s1.gr, repGroups), beside = TRUE, col = repCols, ylim = c(0,1),
         xlab = "reference repeat groups", ylab = "overlaping hotspots (proportion of reference)",
         main = paste(s1name, "overlapping", s2name, "repeat hotspots"))
-legend("topright", legend = repGroups, fill = repCols, title = "query repeat groups", bty = "n")
+legend("topright", legend = repGroups, fill = repCols, title = "query repeat groups", bty = "n", cex = .75)
 
 barplot(olHotspotSummary(s1.gr, s1.gr, repGroups), beside = TRUE, col = repCols, ylim = c(0,1),
         xlab = "reference repeat groups", ylab = "overlaping hotspots (proportion of reference)",
         main = paste(s1name, "self overlap"))
-legend("topright", legend = repGroups, fill = repCols, title = "query repeat groups", bty = "n")
+dev.off()
 
 
 
@@ -167,7 +169,14 @@ s2Corresponding <- extractCorrespondingHotspots(ref.gr = s2.gr,que_ref.gr = s1_s
 
 
 
-hist(width(s1Corresponding$que$dif$ancient))
+hist(log10(width(s1Corresponding$que$dif$new_SINE)), breaks = 100); abline(v = 5e4)
+hist(log10(width(s1Corresponding$que$con$new_SINE)), breaks = 100); abline(v = 5e4)
+
+boxplot(width(s2Corresponding$que$con$new_SINE),
+        width(s2Corresponding$que$dif$new_SINE), 
+        outline = T, names = c("con", "dif"),
+        ylab = "width (bp)")
+
 
 # how to extract repeat content.
 
@@ -203,7 +212,8 @@ par(mar = c(3,0,0,0), oma = c(5,5,5,5))
 for(i in 1:length(repGroups)){
   dat <- filter(s1_s2_insertionRate, repGroup == repGroups[i] & (conState == "con" | conState == "dif"))
   dat$conState <- droplevels(dat$conState)
-  boxplot(Z_score ~ genome + conState, data = dat, las = 2, outline = FALSE, notch = FALSE, xaxt = "n", col = c("white","grey80"))
+  boxplot(Z_score ~ genome + conState, data = dat, las = 2, outline = FALSE, 
+          notch = FALSE, xaxt = "n", col = c("white","grey80"), ylim = c(-2,7))
   axis(side = 1,at = c(1.5,3.5), labels = c("conserved hotspots", "differential hotspots"))
   legend("topright", legend = repGroups[i], bty = "n")
   stripchart(Z_score ~ genome + conState, data = dat, add = TRUE, vert = TRUE,
@@ -211,9 +221,7 @@ for(i in 1:length(repGroups)){
   
 }
 mtext("Insertion rate (Z score)", side = 2, line = 2.5, outer = T)
-
 title(main = paste(s1name,"hotspots mapped to" ,s2name),outer = TRUE)
-
 
 
 layout(matrix(c(1,2,3,4), nrow = 4))
@@ -221,7 +229,8 @@ par(mar = c(3,0,0,0), oma = c(5,5,5,5))
 for(i in 1:length(repGroups)){
   dat <- filter(s2_s1_insertionRate, repGroup == repGroups[i] & (conState == "con" | conState == "dif"))
   dat$conState <- droplevels(dat$conState)
-  boxplot(Z_score ~ genome + conState, data = dat, las = 2, outline = FALSE, notch = FALSE, xaxt = "n", col = c("white","grey80"))
+  boxplot(Z_score ~ genome + conState, data = dat, las = 2, outline = FALSE, 
+          notch = FALSE, xaxt = "n", col = c("white","grey80"), ylim = c(-2,7))
   axis(side = 1,at = c(1.5,3.5), labels = c("conserved", "differential"))
   legend("topright", legend = repGroups[i], bty = "n")
   
@@ -230,7 +239,6 @@ for(i in 1:length(repGroups)){
   
 }
 mtext("Insertion rate (Z score)", side = 2, line = 2.5, outer = T)
-
 title(main = paste(s2name,"hotspots mapped to" ,s1name),outer = TRUE)
 dev.off()
 

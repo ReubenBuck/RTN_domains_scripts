@@ -1,0 +1,149 @@
+Que 
+
+[1]    chr17 [85262268, 85323828]      * | new_SINE_1071_309    new_SINE new_SINE;1071 new_SINE;309
+  [2]    chr17 [85325286, 85365367]      * | new_SINE_1072_309    new_SINE new_SINE;1072 new_SINE;309
+  [3]    chr17 [85367605, 85398294]      * | new_SINE_1073_309    new_SINE new_SINE;1073 new_SINE;309
+  [4]    chr17 [85402305, 85427021]      * | new_SINE_1074_309    new_SINE new_SINE;1074 new_SINE;309
+  [5]    chr17 [85427607, 85472380]      * | new_SINE_1075_309    new_SINE new_SINE;1075 new_SINE;309
+  [6]    chr17 [85472875, 85492905]      * | new_SINE_1076_309    new_SINE new_SINE;1076 new_SINE;309
+  [7]    chr17 [85495665, 85537950]      * | new_SINE_1077_309    new_SINE new_SINE;1077 new_SINE;309
+
+Ref
+
+[1]    chr10 [46500001, 46550000]      * | new_SINE_1071_309    new_SINE new_SINE;1071 new_SINE;309
+  [2]    chr10 [46550001, 46600000]      * | new_SINE_1072_309    new_SINE new_SINE;1072 new_SINE;309
+  [3]    chr10 [46600001, 46650000]      * | new_SINE_1073_309    new_SINE new_SINE;1073 new_SINE;309
+  [4]    chr10 [46650001, 46700000]      * | new_SINE_1074_309    new_SINE new_SINE;1074 new_SINE;309
+  [5]    chr10 [46700001, 46750000]      * | new_SINE_1075_309    new_SINE new_SINE;1075 new_SINE;309
+  [6]    chr10 [46750001, 46800000]      * | new_SINE_1076_309    new_SINE new_SINE;1076 new_SINE;309
+  [7]    chr10 [46800001, 46850000]      * | new_SINE_1077_309    new_SINE new_SINE;1077 new_SINE;309
+
+
+ref
+
+GRanges object with 7 ranges and 4 metadata columns:
+      seqnames               ranges strand |      domainID    repGroup   hotspotID hotspotGroup
+         <Rle>            <IRanges>  <Rle> |   <character> <character> <character>  <character>
+  [1]     chr3 [63500001, 63550000]      * | ancient_42_15     ancient  ancient;42   ancient;15
+  [2]     chr3 [63550001, 63600000]      * | ancient_43_15     ancient  ancient;43   ancient;15
+  [3]     chr3 [63600001, 63650000]      * | ancient_44_15     ancient  ancient;44   ancient;15
+  [4]     chr3 [63650001, 63700000]      * | ancient_45_15     ancient  ancient;45   ancient;15
+  [5]     chr3 [63700001, 63750000]      * | ancient_46_15     ancient  ancient;46   ancient;15
+  [6]     chr3 [63750001, 63800000]      * | ancient_47_15     ancient  ancient;47   ancient;15
+  [7]     chr3 [63800001, 63850000]      * | ancient_48_15     ancient  ancient;48   ancient;15
+  -------
+  seqinfo: 132 sequences from an unspecified genome; no seqlengths
+
+
+que 
+
+GRanges object with 7 ranges and 4 metadata columns:
+      seqnames               ranges strand |      domainID    repGroup   hotspotID hotspotGroup
+         <Rle>            <IRanges>  <Rle> |   <character> <character> <character>  <character>
+  [1]     chr5 [45156241, 45199558]      * | ancient_42_15     ancient  ancient;42   ancient;15
+  [2]     chr5 [45099469, 45151460]      * | ancient_43_15     ancient  ancient;43   ancient;15
+  [3]     chr5 [45058039, 45099467]      * | ancient_44_15     ancient  ancient;44   ancient;15
+  [4]     chr5 [45023928, 45058038]      * | ancient_45_15     ancient  ancient;45   ancient;15
+  [5]     chr5 [44978866, 45023927]      * | ancient_46_15     ancient  ancient;46   ancient;15
+  [6]     chr5 [44934345, 44978866]      * | ancient_47_15     ancient  ancient;47   ancient;15
+  [7]     chr5 [44892325, 44934344]      * | ancient_48_15     ancient  ancient;48   ancient;15
+
+
+ref 
+
+
+ [1]    chr21 [14500001, 14550000]      *   | ancient_1580_401     ancient ancient;1580  ancient;401
+   [2]    chr21 [14550001, 14600000]      *   | ancient_1581_401     ancient ancient;1581  ancient;401
+   [3]    chr21 [14600001, 14650000]      *   | ancient_1582_401     ancient ancient;1582  ancient;401
+   [4]    chr21 [14650001, 14700000]      *   | ancient_1583_401     ancient ancient;1583  ancient;401
+   [5]    chr21 [14700001, 14750000]      *   | ancient_1584_401     ancient ancient;1584  ancient;401
+   ...      ...                  ...    ... ...              ...         ...          ...          ...
+   [9]    chr21 [14900001, 14950000]      *   | ancient_1588_401     ancient ancient;1588  ancient;401
+  [10]    chr21 [14950001, 15000000]      *   | ancient_1589_401     ancient ancient;1589  ancient;401
+  [11]    chr21 [15000001, 15050000]      *   | ancient_1590_401     ancient ancient;1590  ancient;401
+  [12]    chr21 [15050001, 15100000]      *   | ancient_1591_401     ancient ancient;1591  ancient;401
+  [13]    chr21 [15100001, 15150000]      *   | ancient_1592_401     ancient ancient;1592  ancient;401
+
+que
+
+      seqnames               ranges strand   |         domainID    repGroup    hotspotID hotspotGroup
+          <Rle>            <IRanges>  <Rle>   |      <character> <character>  <character>  <character>
+   [1]     chr7 [98323931, 98376450]      *   | ancient_1580_401     ancient ancient;1580  ancient;401
+   [2]     chr7 [98376453, 98423505]      *   | ancient_1581_401     ancient ancient;1581  ancient;401
+   [3]     chr7 [98423506, 98473351]      *   | ancient_1582_401     ancient ancient;1582  ancient;401
+   [4]     chr7 [98476677, 98530942]      *   | ancient_1583_401     ancient ancient;1583  ancient;401
+   [5]     chr7 [98530943, 98572985]      *   | ancient_1584_401     ancient ancient;1584  ancient;401
+   ...      ...                  ...    ... ...              ...         ...          ...          ...
+   [9]     chr7 [98710473, 98763128]      *   | ancient_1588_401     ancient ancient;1588  ancient;401
+  [10]     chr7 [98763129, 98812654]      *   | ancient_1589_401     ancient ancient;1589  ancient;401
+  [11]     chr7 [98814971, 98866413]      *   | ancient_1590_401     ancient ancient;1590  ancient;401
+  [12]     chr7 [98867533, 98930627]      *   | ancient_1591_401     ancient ancient;1591  ancient;401
+  [13]     chr7 [98930628, 98981450]      *   | ancient_1592_401     ancient ancient;1592  ancient;401
+
+
+ref 
+
+
+        <Rle>            <IRanges>  <Rle> |    <character> <character> <character>  <character>
+  [1]     chr5 [48900001, 48950000]      * | ancient_163_51     ancient ancient;163   ancient;51
+  [2]     chr5 [48950001, 49000000]      * | ancient_164_51     ancient ancient;164   ancient;51
+  [3]     chr5 [49000001, 49050000]      * | ancient_165_51     ancient ancient;165   ancient;51
+  [4]     chr5 [49050001, 49100000]      * | ancient_166_51     ancient ancient;166   ancient;51
+  [5]     chr5 [49100001, 49150000]      * | ancient_167_51     ancient ancient;167   ancient;51
+  [6]     chr5 [49150001, 49200000]      * | ancient_168_51     ancient ancient;168   ancient;51
+  [7]     chr5 [49200001, 49250000]      * | ancient_169_51     ancient ancient;169   ancient;51
+  [8]     chr5 [49250001, 49300000]      * | ancient_170_51     ancient ancient;170   ancient;51
+  [9]     chr5 [49300001, 49350000]      * | ancient_171_51     ancient ancient;171   ancient;51
+  -------
+
+
+que
+
+        <Rle>            <IRanges>  <Rle> |    <character> <character> <character>  <character>
+  [1]     chr4 [97355924, 97404235]      * | ancient_163_51     ancient ancient;163   ancient;51
+  [2]     chr4 [97309977, 97355709]      * | ancient_164_51     ancient ancient;164   ancient;51
+  [3]     chr4 [97263160, 97309976]      * | ancient_165_51     ancient ancient;165   ancient;51
+  [4]     chr4 [97202493, 97263159]      * | ancient_166_51     ancient ancient;166   ancient;51
+  [5]     chr4 [97149283, 97202492]      * | ancient_167_51     ancient ancient;167   ancient;51
+  [6]     chr4 [97096091, 97148636]      * | ancient_168_51     ancient ancient;168   ancient;51
+  [7]     chr4 [97039316, 97095979]      * | ancient_169_51     ancient ancient;169   ancient;51
+  [8]     chr4 [96961545, 97039315]      * | ancient_170_51     ancient ancient;170   ancient;51
+  [9]     chr4 [96920411, 96961544]      * | ancient_171_51     ancient ancient;171   ancient;51
+
+
+
+table(elementMetadata(s1Corresponding$ref$dif$ancient)$hotspotGroup)
+s1Corresponding$que$dif$ancient[elementMetadata(s1Corresponding$que$dif$ancient)$hotspotGroup == "ancient;51"]
+
+[1]    chr22 [3650001, 3700000]      * | new_L1_541_170      new_L1  new_L1;541   new_L1;170
+   [2]    chr22 [3700001, 3750000]      * | new_L1_542_170      new_L1  new_L1;542   new_L1;170
+   [3]    chr22 [3750001, 3800000]      * | new_L1_543_170      new_L1  new_L1;543   new_L1;170
+   [4]    chr22 [3800001, 3850000]      * | new_L1_544_170      new_L1  new_L1;544   new_L1;170
+   [5]    chr22 [3850001, 3900000]      * | new_L1_545_170      new_L1  new_L1;545   new_L1;170
+   [6]    chr22 [3900001, 3950000]      * | new_L1_546_170      new_L1  new_L1;546   new_L1;170
+   [7]    chr22 [3950001, 4000000]      * | new_L1_547_170      new_L1  new_L1;547   new_L1;170
+   [8]    chr22 [4000001, 4050000]      * | new_L1_548_170      new_L1  new_L1;548   new_L1;170
+   [9]    chr22 [4050001, 4100000]      * | new_L1_549_170      new_L1  new_L1;549   new_L1;170
+  [10]    chr22 [4100001, 4150000]      * | new_L1_550_170      new_L1  new_L1;550   new_L1;170
+
+  [1]    chr14 [74195464, 74255001]      * | new_L1_541_170      new_L1  new_L1;541   new_L1;170
+   [2]    chr14 [74259917, 74303339]      * | new_L1_542_170      new_L1  new_L1;542   new_L1;170
+   [3]    chr14 [74324629, 74362981]      * | new_L1_543_170      new_L1  new_L1;543   new_L1;170
+   [4]    chr14 [74365435, 74381479]      * | new_L1_544_170      new_L1  new_L1;544   new_L1;170
+   [5]    chr14 [74390241, 74462729]      * | new_L1_545_170      new_L1  new_L1;545   new_L1;170
+   [6]    chr14 [74462741, 74506937]      * | new_L1_546_170      new_L1  new_L1;546   new_L1;170
+   [7]    chr14 [74507870, 74562919]      * | new_L1_547_170      new_L1  new_L1;547   new_L1;170
+   [8]    chr14 [74565718, 74624905]      * | new_L1_548_170      new_L1  new_L1;548   new_L1;170
+   [9]    chr14 [74624906, 74678068]      * | new_L1_549_170      new_L1  new_L1;549   new_L1;170
+  [10]    chr14 [74686680, 74700090]      * | new_L1_550_170      new_L1  new_L1;550   new_L1;170
+
+
+
+        <Rle>            <IRanges>  <Rle> |     <character> <character>  <character>  <character>
+  [1]     chr3 [26500001, 26550000]      * | new_SINE_173_47    new_SINE new_SINE;173  new_SINE;47
+  [2]     chr3 [26550001, 26600000]      * | new_SINE_174_47    new_SINE new_SINE;174  new_SINE;47
+  [3]     chr3 [26600001, 26650000]      * | new_SINE_175_47    new_SINE new_SINE;175  new_SINE;47
+  [4]     chr3 [26650001, 26700000]      * | new_SINE_176_47    new_SINE new_SINE;176  new_SINE;47
+  [5]     chr3 [26750001, 26800000]      * | new_SINE_178_47    new_SINE new_SINE;178  new_SINE;47
+  [6]     chr3 [26800001, 26850000]      * | new_SINE_179_47    new_SINE new_SINE;179  new_SINE;47
+  -------

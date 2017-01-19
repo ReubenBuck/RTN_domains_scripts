@@ -20,7 +20,7 @@ load(paste("R_objects/temp/",g.Y,"_domainList.RData", sep = "")); assign(paste("
 domainCols <- c("darkblue", "aquamarine3", "purple", "red")
 
 
-squareSize = 20
+squareSize = 50
 
 
 
@@ -34,18 +34,7 @@ head(combinedComplete)
 
 
 
-insulationScore <- function(mat, squareSize){
-  mat[is.infinite(mat)] <- NA
-  r <- c(1:squareSize)
-  c <- c((squareSize + 1):(squareSize + squareSize))
-  insulate = NULL
-  for(i in 1:(nrow(mat)-(squareSize + squareSize - 1))){
-    insulate <- c(insulate, mean(mat[r,c], na.rm = T))
-    r <- r + 1
-    c <- c + 1
-  }
-  return(insulate)
-}
+
 
 
 # so it can be done, I've just pulled out the wrong triangle
@@ -57,21 +46,21 @@ insulationScore <- function(mat, squareSize){
 
 
 
-chr.X = "chrX"
+chr.X = "chr3"
 chrChoiceX <- combinedComplete[combinedComplete$chr1.x == chr.X,]
 chrChoiceX <- chrChoiceX[order(chrChoiceX$start1.x),]
 
 chrCols <- as.factor(as.character(chrChoiceX$chr2.y))
 
-layout(1);par(mar=c(0,0,0,0))
+layout(1);par(mar=c(0,0,0,0), oma = c(5,5,5,5))
 plot(chrChoiceX$start1.x, chrChoiceX$start1.y, 
      col = rainbow(length(levels(chrCols)))[chrCols])
 legend("topright", legend = levels(chrCols), fill = rainbow(length(levels(chrCols))), bty = "n")
 
+abline(v=75e6)
 
 
-
-xlimsX <- c(100e6,110e6)
+xlimsX <- c(71.5e6,75e6)
 
 
 genoMatrixX <- read.delim(paste("data/trialHicAnalysis/",g.X,"trial/",chr.X,"raw20kb.txt", sep = ""), 
@@ -85,8 +74,8 @@ genoMatrixX <- as.matrix(genoMatrixX[,2:ncol(genoMatrixX)])
 xlimsY <- chrChoiceX[chrChoiceX$start1.x > xlimsX[1] & chrChoiceX$end2.x < xlimsX[2],]
 xlimsY <- xlimsY[xlimsY$chr1.y == xlimsY$chr1.y[1],]
 xlimsY <- range(c(xlimsY$start1.y, xlimsY$start2.y, xlimsY$end1.y, xlimsY$end2.y))
-xlimsY[1] <- round((xlimsY[1]-100000)/20e3) * 20e3
-xlimsY[2] <- round((xlimsY[2]+100000)/20e3) * 20e3
+xlimsY[1] <- round((xlimsY[1]-3000000)/20e3) * 20e3
+xlimsY[2] <- round((xlimsY[2]+3000000)/20e3) * 20e3
 
 chrChoiceY <- chrChoiceX[chrChoiceX$start1.x > xlimsX[1]& chrChoiceX$end2.x < xlimsX[2],]
 chrChoiceY <- chrChoiceY[chrChoiceY$chr1.y == chrChoiceY$chr1.y[1],]
@@ -95,8 +84,8 @@ if(chrChoiceY$start1.y[1] > chrChoiceY$start1.y[nrow(chrChoiceY)]){
 }
 
 xlimsX <- range(c(chrChoiceY$start1.x, chrChoiceY$start2.x, chrChoiceY$end1.x, chrChoiceY$end2.x))
-xlimsX[1] <- round((xlimsX[1]-100000)/20e3) * 20e3
-xlimsX[2] <- round((xlimsX[2]+100000)/20e3) * 20e3
+xlimsX[1] <- round((xlimsX[1]-3000000)/20e3) * 20e3
+xlimsX[2] <- round((xlimsX[2]+3000000)/20e3) * 20e3
 
 
 
@@ -117,7 +106,7 @@ genoMatrixY <- as.matrix(genoMatrixY[,2:ncol(genoMatrixY)])
 
 
 ylims <- c(0, 0.01)
-layout(c(1,2,3,4,5,6), height = c(2,.5,2,2,.5,2),width=c(2,2))
+layout(c(1,2,3,4,5,6), height = c(2,.5,3,2,.5,3),width=c(2,2))
 par(mar=c(0,0,0,0), oma=c(5,5,5,5))
 
 
@@ -170,7 +159,7 @@ for(i in 1:length(g.X.domainList)){
 
 par(mar=c(7,0,0,0))
 whiteRed <- colorRampPalette(c("white","red"))
-image(triangulate(mat)[,(nrow(mat)/3):1], col = whiteRed(40), axes = F, ylim = c(.5,1), xlab = chr.X)
+image(triangulate(mat)[,(nrow(mat)/2):1], col = whiteRed(40), axes = F, ylim = c(.5,1), xlab = chr.X)
 
 axis(side = 1,at = seq(0,1,length.out = 5),labels = seq(from = xlimsX[1], to = xlimsX[2], length.out = 5))
 
@@ -245,7 +234,7 @@ for(i in 1:length(g.Y.domainList)){
 par(mar=c(7,0,0,0))
 
 whiteRed <- colorRampPalette(c("white","red"))
-image(triangulate(mat)[,(nrow(mat)/3):1], col = whiteRed(40), axes = F, ylim = c(.5,1), xlab = chr.Y)
+image(triangulate(mat)[,(nrow(mat)/2):1], col = whiteRed(40), axes = F, ylim = c(.5,1), xlab = chr.Y)
 
 axis(side = 1,at = seq(0,1,length.out = 5),labels = seq(from = xlimsY[1], to = xlimsY[2], length.out = 5))
 
