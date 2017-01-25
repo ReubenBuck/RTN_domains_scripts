@@ -138,19 +138,22 @@ extractCorrespondingHotspots <- function(ref.gr, que_ref.gr, ref_que.gr, repGrou
   
   hotspotList <- list(ref = refList, que = queList)
   
-  ol <- as.matrix(findOverlaps(ref.gr, que_ref.gr))
-  
-  dfRepGroup <- data.frame(elementMetadata(ref.gr)$repGroup[ol[,1]], 
-                           elementMetadata(que_ref.gr)$repGroup[ol[,2]])
-  
   
   for(i in 1:length(repGroups)){
+    sampRef.gr <- ref.gr[elementMetadata(ref.gr)$repGroup == repGroups[i]]
+    sampQue_Ref.gr <- que_ref.gr[elementMetadata(que_ref.gr)$repGroup == repGroups[i]]
     
+    ol <- as.matrix(findOverlaps(sampRef.gr,sampQue_Ref.gr ))
+  
+   # dfRepGroup <- data.frame(elementMetadata(sampRef.gr)$repGroup[ol[,1]], 
+    #                       elementMetadata(sampQue_Ref.gr)$repGroup[ol[,2]])
     
-    conHotspot.gr <- ref.gr[unique(ol[dfRepGroup[,1] == repGroups[i] & dfRepGroup[,1] == repGroups[i], 1])]
+    conHotspot.gr <- sampRef.gr[ol[,1]]
+    
+   # conHotspot.gr <- ref.gr[unique(ol[dfRepGroup[,1] == repGroups[i] & dfRepGroup[,1] == repGroups[i], 1])]
     
     tabRef <- table(elementMetadata(ref.gr[elementMetadata(ref.gr)$repGroup == repGroups[i]])$hotspotGroup)
-    tabCon <- table(elementMetadata(conHotspot.gr)$hotspotGroup)
+    tabCon <- table(elementMetadata(unique(conHotspot.gr))$hotspotGroup)
     
     tabConScores <- tabCon/tabRef[names(tabRef) %in% names(tabCon)][names(tabCon)]
     
@@ -178,25 +181,65 @@ extractCorrespondingHotspots <- function(ref.gr, que_ref.gr, ref_que.gr, repGrou
     hotspotList$ref$mid[[repGroups[i]]] <- midDomainRef
     hotspotList$ref$dif[[repGroups[i]]] <- difDomainRef
     
+    
+    # filtering step to make sure that groups are the correct size in both ref and que
+    # difference between actuall and assumed width must be either 150kb or 20% within actuall
+    for(conState in c("con", "mid", "dif")){
+      KeepList <- NULL
+      for(genome in c("que","ref")){
+        df <- as.data.frame(hotspotList[[genome]][[conState]][[repGroups[i]]])
+        groupSum <- summarise(group_by(df, hotspotGroup), n(), min(start), max(end))
+        groupSum$sizeDif = abs((groupSum$`n()` * 5e4) - (groupSum$'max(end)' - groupSum$'min(start)'))
+        keepers <- filter(groupSum, sizeDif < 1.5e5 )$hotspotGroup 
+        KeepList <- c(KeepList, keepers)
+      }
+      KeepList <- KeepList[duplicated(KeepList)]
+      keep <- elementMetadata(hotspotList[["ref"]][[conState]][[repGroups[i]]])$hotspotGroup%in%KeepList
+      
+      hotspotList[["ref"]][[conState]][[repGroups[i]]] = hotspotList[["ref"]][[conState]][[repGroups[i]]][keep]
+      hotspotList[["que"]][[conState]][[repGroups[i]]] = hotspotList[["que"]][[conState]][[repGroups[i]]][keep]
+    }
+    
+    
+    
   }
   
   return(hotspotList)
   
 }
 
-extractInsertionRates <- function(ref.gr, que.gr, refCorresponding, repGroups){
+extractInsertionRates <- function(ref.gr, que.gr, refCorresponding, repGroups, minoverlap = 1){
   # input reference and query binned granges with TE content in metadata
   insertionRate <- NULL
   for(genome in c("ref", "que")){
     genome.gr <- get(paste(genome, ".gr", sep = ""))
     for(conState in c("con", "mid", "dif")){
       for(rep in repGroups){
-        ol <- as.matrix(elementMetadata(subsetByOverlaps(genome.gr,refCorresponding[[genome]][[conState]][[rep]]))[rep])[,1]
-        df <- data.frame(repGroup = rep, genome = genome, conState = conState, Z_score = ol)
+        refCor <- refCorresponding[[genome]][[conState]][[rep]]
+        ol <- as.matrix(findOverlaps(genome.gr,refCor, minoverlap = minoverlap))
+        mD <- data.frame(chr = seqnames(genome.gr[ol[,1]]),
+                         start = start(genome.gr[ol[,1]]), end = end(genome.gr[ol[,1]]),
+                         elementMetadata(genome.gr[ol[,1]])[c(rep, "binID")],
+                         elementMetadata(refCor[ol[,2]])[c("hotspotID", "hotspotGroup")] )
+        colnames(mD)[4] <- c("insertionRate")
+        df <- data.frame(mD,repGroup = rep, genome = genome, conState = conState)
         insertionRate <- rbind(insertionRate, df)
       }
     }
   }
   return(insertionRate)
 }
+
+
+
+# could write a second funciton for group.
+# get the groups first, do the overlap 
+# then aggregate the overlapped scores
+
+#refCor <- refCorresponding[[genome]][[conState]][[rep]]
+#aggregate(x = start(refCor), by = elementMetadata(refCor)
+#df <- data.frame(insertionRate = as.matrix(elementMetadata(genome.gr[ol[,1]])[rep]), elementMetadata(refCor[ol[,2]])[c("hotspotID", "hotspotGroup")] )
+
+
+
 

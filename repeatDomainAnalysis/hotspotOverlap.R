@@ -188,7 +188,7 @@ datS1.gr <- GRanges(seqnames = Rle(s1DataList$bin$chr),
                     binID = s1DataList$repSummary$binID
                     )
 for(i in 1:length(repGroups)){
-  elementMetadata(datS1.gr)[,repGroups[i]] <- scale((s1DataList$repSummary[,repGroups[i]]/s1DataList$bin$Known)*10000)
+  elementMetadata(datS1.gr)[,repGroups[i]] <- ((s1DataList$repSummary[,repGroups[i]]/s1DataList$bin$Known)*50000)
 }
 
 datS2.gr <- GRanges(seqnames = Rle(s2DataList$bin$chr),
@@ -196,14 +196,14 @@ datS2.gr <- GRanges(seqnames = Rle(s2DataList$bin$chr),
                     binID = s2DataList$repSummary$binID
 )
 for(i in 1:length(repGroups)){
-  elementMetadata(datS2.gr)[,repGroups[i]] <- scale((s2DataList$repSummary[,repGroups[i]]/s2DataList$bin$Known)*10000)
+  elementMetadata(datS2.gr)[,repGroups[i]] <- ((s2DataList$repSummary[,repGroups[i]]/s2DataList$bin$Known)*50000)
 }
 
 
 
 
-s1_s2_insertionRate <- extractInsertionRates(ref.gr = datS1.gr, que.gr = datS2.gr, refCorresponding = s1Corresponding, repGroups = repGroups)
-s2_s1_insertionRate <- extractInsertionRates(ref.gr = datS2.gr, que.gr = datS1.gr, refCorresponding = s2Corresponding, repGroups = repGroups)
+s1_s2_insertionRate <- extractInsertionRates(ref.gr = datS1.gr, que.gr = datS2.gr, refCorresponding = s1Corresponding, repGroups = repGroups, minoverlap = 10e3)
+s2_s1_insertionRate <- extractInsertionRates(ref.gr = datS2.gr, que.gr = datS1.gr, refCorresponding = s2Corresponding, repGroups = repGroups, minoverlap = 10e3)
 
 
 pdf(file = paste("plots/hotspotOverlap/", s1name,"_",s2name,"_insertionRates.pdf", sep = ""), width = 5,height = 10, onefile = TRUE)
@@ -213,7 +213,7 @@ for(i in 1:length(repGroups)){
   dat <- filter(s1_s2_insertionRate, repGroup == repGroups[i] & (conState == "con" | conState == "dif"))
   dat$conState <- droplevels(dat$conState)
   boxplot(Z_score ~ genome + conState, data = dat, las = 2, outline = FALSE, 
-          notch = FALSE, xaxt = "n", col = c("white","grey80"), ylim = c(-2,7))
+          notch = FALSE, xaxt = "n", col = c("white","grey80"))
   axis(side = 1,at = c(1.5,3.5), labels = c("conserved hotspots", "differential hotspots"))
   legend("topright", legend = repGroups[i], bty = "n")
   stripchart(Z_score ~ genome + conState, data = dat, add = TRUE, vert = TRUE,
@@ -230,7 +230,7 @@ for(i in 1:length(repGroups)){
   dat <- filter(s2_s1_insertionRate, repGroup == repGroups[i] & (conState == "con" | conState == "dif"))
   dat$conState <- droplevels(dat$conState)
   boxplot(Z_score ~ genome + conState, data = dat, las = 2, outline = FALSE, 
-          notch = FALSE, xaxt = "n", col = c("white","grey80"), ylim = c(-2,7))
+          notch = FALSE, xaxt = "n", col = c("white","grey80"))
   axis(side = 1,at = c(1.5,3.5), labels = c("conserved", "differential"))
   legend("topright", legend = repGroups[i], bty = "n")
   
@@ -257,8 +257,106 @@ dev.off()
 
 # get the reference query stuff sorted. 
 
+# unmapable enhancers/ and overlapping TEs relative to similar structures. 
+
+# get enhancers and adjacent regions. 
+
+
+layout(matrix(c(1,2,3,4), nrow = 2))
+par(mar = c(3,3,0,0), oma = c(5,5,5,5))
+for(i in 1:length(repGroups)){
+  dat <- filter(s1_s2_insertionRate, repGroup == repGroups[i] & (conState == "con" | conState == "dif"))
+  dat$conState <- droplevels(dat$conState)
+  dat1 <- summarise(group_by(dat, hotspotID, repGroup, conState, genome), mean(insertionRate))
+  boxplot(`mean(insertionRate)` ~ genome + conState, data = dat1, las = 2, outline = FALSE, 
+          notch = FALSE, xaxt = "n", col = c("white","grey80"))
+  axis(side = 1,at = c(1.5,3.5), labels = c("conserved hotspots", "non-conserved hotspots"))
+  legend("topright", legend = repGroups[i], bty = "n")
+  
+  abline(h = mean(elementMetadata(datS1.gr)[[repGroups[i]]], na.rm = T), lwd = 2)
+  abline(h = mean(elementMetadata(datS2.gr)[[repGroups[i]]], na.rm = T), lwd = 2, col = "grey80")
+  
+  dat2 <- summarise(group_by(dat, genome, conState, hotspotGroup, repGroup), mean(insertionRate), n())
+  stripchart(`mean(insertionRate)` ~ genome + conState, data = dat2, add = TRUE, vert = TRUE,
+             method = "jitter", jitter = .35, pch = 16, cex = sqrt(dat2$`n()`/10), col = repCols[i])
+  
+}
+mtext("Insertion rate (Z score)", side = 2, line = 2.5, outer = T)
+title(main = paste(s1name,"hotspots mapped to" ,s2name),outer = TRUE)
+
+
+
+layout(matrix(c(1,2,3,4), nrow = 2, byrow = T))
+par(mar = c(3,3,0,0), oma = c(5,5,5,5))
+for(i in 1:length(repGroups)){
+  dat <- filter(s2_s1_insertionRate, repGroup == repGroups[i] & (conState == "con" | conState == "dif"))
+  dat$conState <- droplevels(dat$conState)
+  dat1 <- summarise(group_by(dat, hotspotID, repGroup, conState, genome), mean(insertionRate))
+  
+  boxplot(`mean(insertionRate)` ~ genome + conState, data = dat1, las = 2, outline = FALSE, 
+          notch = FALSE, xaxt = "n", col = c("grey30","grey80"))
+  axis(side = 1,at = c(1.5,3.5), labels = c("conserved hotspots", "non-conserved hotspots"))
+  legend("topright", legend = repGroups[i], bty = "n")
+  
+  abline(h = mean(elementMetadata(datS2.gr)[[repGroups[i]]], na.rm = T), lwd = 2)
+  abline(h = mean(elementMetadata(datS1.gr)[[repGroups[i]]], na.rm = T), lwd = 2, col = "grey80")
+  
+  boxplot(`mean(insertionRate)` ~ genome + conState, data = dat1, las = 2, outline = FALSE, 
+          notch = FALSE, xaxt = "n", col = c("grey30","grey80"), add= T)
+  
+  dat2 <- summarise(group_by(dat, genome, conState, hotspotGroup, repGroup), mean(insertionRate), n())
+  stripchart(`mean(insertionRate)` ~ genome + conState, data = dat2, add = TRUE, vert = TRUE,
+             method = "jitter", jitter = .35, pch = 16, cex = sqrt(dat2$`n()`/10), col = repCols[i])
+  
+  
+}
+mtext("Insertion rate (Z score)", side = 2, line = 2.5, outer = T)
+title(main = paste(s2name,"hotspots mapped to" ,s1name),outer = TRUE)
+
+legend("topleft",legend = c("100kb", "500kb", "1Mb"), pch = c(16,16,16), pt.cex = sqrt(c(2/10,10/10,20/10)), bty = "n", title = "hotspot size")
+
+# the only thing that looks comparable is the SINE impact and only marginally so. 
+
+
+# there's some problems here
+
+# how do we measure our overlap of groups. 
+
+# what is considered a conserved hotspot
+
+
+plot(ecdf(x = log10(5e4 * table(elementMetadata(s1Corresponding$ref$con$ancient)[["hotspotGroup"]]))))
 
 
 
 
 
+df <- as.data.frame(s1Corresponding$que$con$new_SINE)
+a <- summarise(group_by(df, hotspotGroup), n(), min(start), max(end))
+
+plot(density(log10(a$`max(end)` - a$`min(start)`),cut  = 0, width= .2))
+
+hist(log10(a$`max(end)` - a$`min(start)`), breaks = 100, xaxt = "n")
+axis(side = 1,at = c(seq(0,6,1)),  10^seq(0,6,1))
+
+
+layout(1)
+plot((a$`max(end)` - a$`min(start)`), a$`n()`*50000)
+text((a$`max(end)` - a$`min(start)`), a$`n()`*50000, labels = a$hotspotGroup,pos = 2)
+
+hist((a$`max(end)` - a$`min(start)`) - a$`n()`*50000)
+
+smoothScatter( a$`n()`*50000, ((a$`max(end)` - a$`min(start)`) - a$`n()`*50000), xlim = c(0, 1.2e6),nrpoints =Inf, cex = 3)
+
+abline(h = -1.5e5)
+abline(h = 150000)
+
+
+
+
+a <- filter(s1_s2_insertionRate,repGroup == "new_SINE" & genome == "ref", conState == "con")
+
+b <- summarise(group_by(a, hotspotGroup), min(start), max(end), n())
+
+plot((b[[3]] - b[[2]]), b[[4]]*50000)
+grid()
