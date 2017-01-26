@@ -5,6 +5,8 @@
 ## needs to be converted to executable type script
 
 
+#turn this ito executable
+
 
 ### create a naming convention. 
 
@@ -19,14 +21,14 @@ sizes <- 50e3
 
 rGroups <- c("ancient", "new_SINE", "new_L1", "old_L1")
 
-genome = "mm9"
+genome = "hg19"
 
 Gstar = TRUE
 
 sizesGstat <- NULL
 noX = TRUE
 
-load(file = paste("~/Desktop/RTN_domains/R_objects/rmskMapTables/binSizes/", genome, "/repData_", genome, "_",as.integer(sizes),"_size.RData", sep = ""))
+load(file = paste("~/Desktop/RTN_domains/R_objects/rmskMapTables/binSizes/", genome, "/repData_", genome, "_",as.integer(sizes),".RData", sep = ""))
 
 
 
@@ -95,44 +97,5 @@ write.table(domainAll, paste("data/repeatHotspot/", genome, "Hotspots.bed"),quot
 
 
 
-#names(domainList) = rGroups
-
-
-
-chrChoice = "chr1"
-xlim = c(1e6, 35e6)
-
-xVals <- repDataList$bin$start[repDataList$bin$chr == chrChoice] + (sizes/2)
-
-layout(matrix(c(1,2,3,4,5,6,7,8), nrow = 8),heights = rep(c(3,1), 4))
-par( oma = c(5,1,5,1))
-
-for(i in 1:4){
-  repVals <- repDataList$repSummary[repDataList$bin$chr == chrChoice,rGroups[i]]/max(repDataList$repSummary[,rGroups[i]])
-  colChoice = c("darkblue", "aquamarine3", "purple", "orangered")[i]
-  
-  par(mar = c(0,5,.5,5))
-  plot(1,xlim = xlim, ylim = c(0,1),type = "n", axes = FALSE, xlab = "", ylab = "")
-  grid()
-  
-  lines(xVals,repVals, lwd =2, col =  colChoice)
-  
-  par(mar = c(.5,5,0,5))
-  plot(1,xlim = xlim, ylim = c(0,1),type = "n", axes = FALSE, xlab = "", ylab = "")
-  rect(xleft = domainList[[rGroups[i]]]$start[domainList[[rGroups[i]]]$chr == chrChoice], 
-       xright = domainList[[rGroups[i]]]$end[domainList[[rGroups[i]]]$chr== chrChoice], 
-       ytop = 1, ybottom = 0, col = colChoice, density = 20)
-}
-axis(side = 1, at = seq(xlim[1], xlim[2],length.out = 20))
-
-title(main = sizes,outer = TRUE)
-
-
-### maybe it is time to pull contact data
-
-
-save(domainList,file = paste("R_objects/temp/",genome,"_domainList.RData", sep = ""))
-
-
-nrow(domainList$ancient[domainList$ancient$chr == "chr1",])
+save(domainList,file = paste("R_objects/domainList/",genome,"_domainList.RData", sep = ""))
 

@@ -125,7 +125,7 @@ olHotspotSummary <- function(ref.gr, que.gr, repGroups){
 # the query hotspots in the reference genome
 # the reference hotspots mapped to the query genome
 
-extractCorrespondingHotspots <- function(ref.gr, que_ref.gr, ref_que.gr, repGroups){ 
+extractCorrespondingHotspots <- function(ref.gr, que_ref.gr, ref_que.gr, que.gr, repGroups){ 
   
   repList <- NULL
   for(i in 1:length(repGroups)){
@@ -143,12 +143,20 @@ extractCorrespondingHotspots <- function(ref.gr, que_ref.gr, ref_que.gr, repGrou
     sampRef.gr <- ref.gr[elementMetadata(ref.gr)$repGroup == repGroups[i]]
     sampQue_Ref.gr <- que_ref.gr[elementMetadata(que_ref.gr)$repGroup == repGroups[i]]
     
-    ol <- as.matrix(findOverlaps(sampRef.gr,sampQue_Ref.gr ))
+    sampQue.gr <- que.gr[elementMetadata(que.gr)$repGroup == repGroups[i]]
+    sampRef_Que.gr <- ref_que.gr[elementMetadata(ref_que.gr)$repGroup == repGroups[i]]
+    
+    
+    olRef <- as.matrix(findOverlaps(sampRef.gr,sampQue_Ref.gr ))
   
+    olRef_Que <- as.matrix(findOverlaps(sampRef_Que.gr,sampQue.gr))
    # dfRepGroup <- data.frame(elementMetadata(sampRef.gr)$repGroup[ol[,1]], 
     #                       elementMetadata(sampQue_Ref.gr)$repGroup[ol[,2]])
     
-    conHotspot.gr <- sampRef.gr[ol[,1]]
+    conID <- unique(c(elementMetadata(sampRef_Que.gr[olRef_Que[,1]])$hotspotID, 
+      elementMetadata(sampRef.gr[olRef[,1]])$hotspotID))
+    
+    conHotspot.gr <- sampRef.gr[elementMetadata(sampRef.gr)$hotspotID %in% conID]
     
    # conHotspot.gr <- ref.gr[unique(ol[dfRepGroup[,1] == repGroups[i] & dfRepGroup[,1] == repGroups[i], 1])]
     
@@ -194,19 +202,24 @@ extractCorrespondingHotspots <- function(ref.gr, que_ref.gr, ref_que.gr, repGrou
         KeepList <- c(KeepList, keepers)
       }
       KeepList <- KeepList[duplicated(KeepList)]
-      keep <- elementMetadata(hotspotList[["ref"]][[conState]][[repGroups[i]]])$hotspotGroup%in%KeepList
+      keepRef <- elementMetadata(hotspotList[["ref"]][[conState]][[repGroups[i]]])$hotspotGroup%in%KeepList
+      keepQue <- elementMetadata(hotspotList[["que"]][[conState]][[repGroups[i]]])$hotspotGroup%in%KeepList
       
-      hotspotList[["ref"]][[conState]][[repGroups[i]]] = hotspotList[["ref"]][[conState]][[repGroups[i]]][keep]
-      hotspotList[["que"]][[conState]][[repGroups[i]]] = hotspotList[["que"]][[conState]][[repGroups[i]]][keep]
+      
+      hotspotList[["ref"]][[conState]][[repGroups[i]]] = hotspotList[["ref"]][[conState]][[repGroups[i]]][keepRef]
+      hotspotList[["que"]][[conState]][[repGroups[i]]] = hotspotList[["que"]][[conState]][[repGroups[i]]][keepQue]
     }
     
-    
-    
+
   }
   
   return(hotspotList)
   
 }
+
+# may need to do a final check to see if any of the non conserved hot spots are actually just hot spots that couldn't map.
+
+
 
 extractInsertionRates <- function(ref.gr, que.gr, refCorresponding, repGroups, minoverlap = 1){
   # input reference and query binned granges with TE content in metadata
