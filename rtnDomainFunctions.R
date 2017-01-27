@@ -221,23 +221,32 @@ extractCorrespondingHotspots <- function(ref.gr, que_ref.gr, ref_que.gr, que.gr,
 
 
 
-extractInsertionRates <- function(ref.gr, que.gr, refCorresponding, repGroups, minoverlap = 1){
+
+# for extracting insertion rates, 
+# the next important step is to make sure we only get stuff that can be directly compared from ref to que
+
+extractInsertionRates <- function(refGenome.gr, queGenome.gr, refCorresponding, repGroups, minoverlap = 1){
   # input reference and query binned granges with TE content in metadata
   insertionRate <- NULL
-  for(genome in c("ref", "que")){
-    genome.gr <- get(paste(genome, ".gr", sep = ""))
+  for(rep in repGroups){
     for(conState in c("con", "mid", "dif")){
-      for(rep in repGroups){
+      conStateInsertionRate <- NULL
+      for(genome in c("ref", "que")){
+        genome.gr <- get(paste(genome, "Genome.gr", sep = ""))
         refCor <- refCorresponding[[genome]][[conState]][[rep]]
         ol <- as.matrix(findOverlaps(genome.gr,refCor, minoverlap = minoverlap))
+        pOl <- width(pintersect(genome.gr[ol[,1]], refCor[ol[,2]]))/width(refCor[ol[,2]])
+        ol <- ol[pOl > .5,]
         mD <- data.frame(chr = seqnames(genome.gr[ol[,1]]),
                          start = start(genome.gr[ol[,1]]), end = end(genome.gr[ol[,1]]),
                          elementMetadata(genome.gr[ol[,1]])[c(rep, "binID")],
                          elementMetadata(refCor[ol[,2]])[c("hotspotID", "hotspotGroup")] )
         colnames(mD)[4] <- c("insertionRate")
         df <- data.frame(mD,repGroup = rep, genome = genome, conState = conState)
-        insertionRate <- rbind(insertionRate, df)
+        conStateInsertionRate <- rbind(conStateInsertionRate, df)
       }
+      keep <- conStateInsertionRate$hotspotID[duplicated(conStateInsertionRate$hotspotID)]
+      insertionRate <- rbind(insertionRate, conStateInsertionRate[(conStateInsertionRate$hotspotID %in% keep),])
     }
   }
   return(insertionRate)

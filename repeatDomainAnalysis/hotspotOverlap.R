@@ -204,8 +204,8 @@ for(i in 1:length(repGroups)){
 
 
 
-s1_s2_insertionRate <- extractInsertionRates(ref.gr = datS1.gr, que.gr = datS2.gr, refCorresponding = s1Corresponding, repGroups = repGroups, minoverlap = 10e3)
-s2_s1_insertionRate <- extractInsertionRates(ref.gr = datS2.gr, que.gr = datS1.gr, refCorresponding = s2Corresponding, repGroups = repGroups, minoverlap = 10e3)
+s1_s2_insertionRate <- extractInsertionRates(refGenome.gr = datS1.gr, queGenome.gr = datS2.gr, refCorresponding = s1Corresponding, repGroups = repGroups, minoverlap = 10e3)
+s2_s1_insertionRate <- extractInsertionRates(refGenome.gr = datS2.gr, queGenome.gr = datS1.gr, refCorresponding = s2Corresponding, repGroups = repGroups, minoverlap = 10e3)
 
 
 pdf(file = paste("plots/hotspotOverlap/", s1name,"_",s2name,"_insertionRates.pdf", sep = ""), width = 12,height = 12, onefile = TRUE)
@@ -278,7 +278,37 @@ dev.off()
 # what is considered a conserved hotspot
 
 
+dat <- filter(s1_s2_insertionRate, repGroup == repGroups[i] & (conState == "con" | conState == "dif"))
+dat$conState <- droplevels(dat$conState)
+
+dat2 <- summarise(group_by(dat, genome, conState, hotspotGroup, repGroup), mean(insertionRate), n())
+
+dat2.que <- filter(dat2, genome == "que" & conState == "dif")
+
+dat2.ref <- filter(dat2, genome == "ref" & conState == "dif" & hotspotGroup %in% dat2.que$hotspotGroup)
+
+hist(dat2.que$`n()` / dat2.ref$`n()`, breaks = 100)
+
+
+# there are things in one that aren't in the other
+# we could use a majority rules approach
+
+head(dat)
+
+# where the majority of the ref overlaps 
+
+
+
+
+
+
 plot(ecdf(x = log10(5e4 * table(elementMetadata(s1Corresponding$ref$con$ancient)[["hotspotGroup"]]))))
+
+
+
+# the size of domains 
+# the number of bases, 
+# the insertion rate
 
 
 
@@ -310,8 +340,8 @@ abline(h = 150000)
 
 
 
-aque <- filter(s1_s2_insertionRate,repGroup == "new_SINE" & genome == "que", conState == "dif")
-aref <- filter(s1_s2_insertionRate,repGroup == "new_SINE" & genome == "ref", conState == "dif")
+aque <- filter(s1_s2_insertionRate,repGroup == "new_SINE" & genome == "que", conState == "con")
+aref <- filter(s1_s2_insertionRate,repGroup == "new_SINE" & genome == "ref", conState == "con")
 
 
 
@@ -354,4 +384,25 @@ s1Corresponding$que$dif$new_SINE[elementMetadata(s1Corresponding$que$dif$new_SIN
 
 # so pretty sure now that the program does what I want it to do
 
+# need to implement a majority overlap
 
+head(aque[duplicated(aque$hotspotID),])
+
+q <- aque[aque$hotspotID == "new_SINE;3395",]
+
+r <- aref[aref$hotspotID == "new_SINE;3395",]
+
+r.q <- s1_s2.gr[elementMetadata(s1_s2.gr)$hotspotID == "new_SINE;3395"]
+
+(end(r.q) - q$start) 
+
+abs(start(r.q) - q$end) 
+
+
+q$start - end(r.q) 
+
+q$end - end(r.q) 
+
+q$start - start(r.q) 
+q
+r
