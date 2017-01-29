@@ -22,9 +22,9 @@ for(name1 in snames){
   
   for(conState in c("con", "dif")){
     for(rep in repGroups){
-      x = as.character(unique(data_1[data_1$genome == "ref"  & data_1$conState == conState & data_1$repGroup == rep,
+      x = unique(as.character(data_1[data_1$genome == "ref"  & data_1$conState == conState & data_1$repGroup == rep,
                                      "hotspotID"]))
-      y = as.character(unique(data_2[data_2$genome == "ref" & data_2$conState == conState & data_2$repGroup == rep, 
+      y = unique(as.character(data_2[data_2$genome == "ref" & data_2$conState == conState & data_2$repGroup == rep, 
                                      "hotspotID"]))
       xy.int <- length(intersect(x,y))
       x.len <- length(x) - xy.int

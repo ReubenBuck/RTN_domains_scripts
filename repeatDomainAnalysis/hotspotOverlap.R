@@ -11,8 +11,8 @@ devtools::source_url("http://raw.githubusercontent.com/ReubenBuck/RTN_domains_sc
 
 
 
-s1name <- "canFam3"
-s2name <- "mm9"
+s1name <- "hg19"
+s2name <- "canFam3"
 
 repGroups <- c("ancient", "new_SINE", "new_L1", "old_L1")
 repCols <- c("darkblue", "aquamarine3", "purple", "red")
@@ -50,7 +50,7 @@ s1 <- read.table(paste("data/repeatHotspot/",s1name,"/",s1name,"Hotspots.bed",se
                  col.names = c("chr", "start", "end", "domainID"),
                  colClasses = c("character", "integer", "integer", "character"))
 
-s1_s2 <- read.table(paste("data/repeatHotspot/",s1name,"/","canFam3_lift_mm10_lift_mm9.bed",sep = "" ), 
+s1_s2 <- read.table(paste("data/repeatHotspot/",s1name,"/","hg19_lift_canFam3.bed",sep = "" ), 
                     col.names = c("chr", "start", "end", "domainID"),
                     colClasses = c("character", "integer", "integer", "character"))
 
@@ -59,7 +59,7 @@ s2 <- read.table(paste("data/repeatHotspot/",s2name,"/",s2name,"Hotspots.bed",se
                  col.names = c("chr", "start", "end", "domainID"),
                  colClasses = c("character", "integer", "integer", "character"))
 
-s2_s1 <- read.table(paste("data/repeatHotspot/",s2name,"/","mm9_lift_mm10_lift_canFam3.bed",sep = "" ), 
+s2_s1 <- read.table(paste("data/repeatHotspot/",s2name,"/","canFam3_lift_hg19.bed",sep = "" ), 
                     col.names = c("chr", "start", "end", "domainID"),
                     colClasses = c("character", "integer", "integer", "character"))
 
