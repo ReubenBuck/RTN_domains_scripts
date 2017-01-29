@@ -10,23 +10,30 @@
 
 ### create a naming convention. 
 
+# inputs
+# 
+
+
+
+
 setwd(dir = "~/Desktop/RTN_domains/")
 rm(list = ls())
 
 library(spdep)
 library(GenomicRanges)
+library(Matrix)
 
 
 sizes <- 50e3
 
 rGroups <- c("ancient", "new_SINE", "new_L1", "old_L1")
 
-genome = "hg19"
+genome = "canFam3"
 
 Gstar = TRUE
 
 sizesGstat <- NULL
-noX = TRUE
+noX = FALSE
 
 load(file = paste("~/Desktop/RTN_domains/R_objects/rmskMapTables/binSizes/", genome, "/repData_", genome, "_",as.integer(sizes),".RData", sep = ""))
 
@@ -38,10 +45,12 @@ if(noX){
   repDataList$bin <- repDataList$bin[-chrX,]
   repDataList$repSummary <- repDataList$repSummary[-chrX,]
   repDataList$neighborMat <- repDataList$neighborMat[[1]][-chrX, -chrX]
+} else {
+  repDataList$neighborMat <- repDataList$neighborMat[[1]]
 }
 
 mat2 <- repDataList$neighborMat
-diag(mat2) <- 0
+Matrix::diag(mat2) <- 0
 lw <- mat2listw(mat2)
 if(Gstar)
   lwG <- nb2listw(include.self(lw$neighbours)) 
@@ -93,7 +102,7 @@ for(i in 1:4){
 }
 
 
-write.table(domainAll, paste("data/repeatHotspot/", genome, "Hotspots.bed"),quote = FALSE,sep = "\t",row.names = FALSE,col.names = FALSE)
+write.table(domainAll, paste("data/repeatHotspot/", genome, "Hotspots.bed", sep = ""),quote = FALSE,sep = "\t",row.names = FALSE,col.names = FALSE)
 
 
 

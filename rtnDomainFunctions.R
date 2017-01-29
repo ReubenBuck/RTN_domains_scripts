@@ -239,7 +239,7 @@ extractInsertionRates <- function(refGenome.gr, queGenome.gr, refCorresponding, 
         ol <- ol[pOl > .5,]
         mD <- data.frame(chr = seqnames(genome.gr[ol[,1]]),
                          start = start(genome.gr[ol[,1]]), end = end(genome.gr[ol[,1]]),
-                         elementMetadata(genome.gr[ol[,1]])[c(rep, "binID")],
+                         elementMetadata(genome.gr[ol[,1]])[c(rep, "binID", "known")],
                          elementMetadata(refCor[ol[,2]])[c("hotspotID", "hotspotGroup")] )
         colnames(mD)[4] <- c("insertionRate")
         df <- data.frame(mD,repGroup = rep, genome = genome, conState = conState)
