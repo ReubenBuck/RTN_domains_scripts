@@ -1,81 +1,229 @@
 rm(list = ls())
 
 setwd("~/Desktop/RTN_domains/")
+ 
+
+library(GenomicRanges)
+library(dplyr)
+library(RMySQL)
 
 
-s1name = "hg19"
-s2name = "mm9"
-s3name = "canFam3"
-
-datas2 <- read.table(file = paste("data/repeatHotspot/", s1name, "/", s1name,"_",s2name,"_conDif.txt", sep = ""), header = T)
-datas3 <- read.table(file = paste("data/repeatHotspot/", s1name, "/", s1name,"_",s3name,"_conDif.txt", sep = ""), header = T)
+repGroups = c("ancient", "new_SINE", "new_L1", "old_L1")
+repCols = c("darkblue", "aquamarine3", "purple", "red")
+snames <- c(s1name = "hg19", s2name = "mm9", s3name = "canFam3")
 
 
-cefile <- list.files(paste("data/genomeAno/consElement/", s1name, sep = ""))
-ce <- read.table(paste("data/genomeAno/consElement/", s1name, "/", cefile, sep = ""))
-ce.gr <- GRanges(seqnames = Rle(ce[,2]), 
-                 ranges = IRanges(start = ce[,3], end = ce[,4]))
+ints <- read.table(file = "data/repeatHotspot/intersect.txt", header= TRUE)
+### Break it down to other names
+## now that we can look at all three
+## use those names to get the corresponding regions
 
-if(s1name == "mm9"){
-  library("TxDb.Mmusculus.UCSC.mm9.knownGene")
-  txdb <- TxDb.Mmusculus.UCSC.mm9.knownGene
-}else if(s1name == "hg19"){
-  library(TxDb.Hsapiens.UCSC.hg19.knownGene)
-  txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
-}else{
-  print("no txdb object")
+# use the R api to get the UCSC info
+
+
+# get all the genome data.
+genomeInfo <- c(rep(list(NA),length(snames)))
+names(genomeInfo) <- snames
+
+for(s in snames){
+  
+  mychannel <- dbConnect(MySQL(), user="genome", host="genome-mysql.cse.ucsc.edu", db = s)
+  
+  seqInfo <- dbGetQuery(mychannel, "SELECT * FROM chromInfo;")
+  
+  ensGene <- dbGetQuery(mychannel, "SELECT * FROM ensGene;")
+  ensGene.gr <- GRanges(seqnames = Rle(ensGene$chrom), 
+                        ranges = IRanges(start = ensGene$txStart, end = ensGene$txEnd, names = ensGene$name),
+                        strand = Rle(ensGene$strand), ensGene[,7:ncol(ensGene)])
+  
+  seqlevels(ensGene.gr) = seqInfo[,1]
+  isCircular(ensGene.gr) = seqlevels(ensGene.gr) == "chrM"
+  seqlengths(ensGene.gr) = seqInfo[,2]
+  genome(ensGene.gr) = s
+  
+  exon.gr <- GRanges(seqnames = Rle(do.call(rep, list(x = ensGene$chrom, times = ensGene$exonCount))),
+                     ranges = IRanges(start = unlist(strsplitAsListOfIntegerVectors(x = ensGene$exonStarts,sep = ",")),
+                                      end = unlist(strsplitAsListOfIntegerVectors(x = ensGene$exonEnds,sep = ",")),
+                                      names = do.call(rep, list(x = ensGene$name, times = ensGene$exonCount))),
+                     strand = Rle(do.call(rep, list(x = ensGene$strand, times = ensGene$exonCount)))
+  )
+  seqlevels(exon.gr) = seqInfo[,1]
+  seqinfo(exon.gr) <- seqinfo(ensGene.gr)
+  exon.gr <- reduce(exon.gr)
+    
+  file <- list.files(paste("data/genomeAno/consElement/", s, sep = ""))
+  ce <- read.table(paste("data/genomeAno/consElement/", s, "/", file, sep = ""))
+  if(s == "canFam3"){
+    colnames(ce) <- c("chr", "start", "end", "name", "score")
+  }else{
+    colnames(ce) <- c("bin","chr", "start", "end", "name", "score")
+  }
+  
+  ce.gr <- GRanges(seqnames = Rle(ce$chr),
+                   ranges = IRanges(start = ce$start, end = ce$end))
+  seqlevels(ce.gr) <- seqlevels(ensGene.gr)
+  seqinfo(ce.gr) <- seqinfo(ensGene.gr)
+  
+  olexon <- as.matrix(findOverlaps(ce.gr, exon.gr )) 
+  nonCodingCe.gr <- ce.gr[-unique(olexon[,1])]
+  
+  genomeInfo[[s]] = list(ensGene = ensGene.gr,exons = exon.gr, ce = ce.gr ,nonCodingCe = nonCodingCe.gr)
+  
 }
 
 
-olexon <- as.matrix(findOverlaps(ce.gr, exons(txdb))) 
-nonCodingCe.gr <- ce.gr[-unique(olexon[,1])]
+# we get the non-coding info and exon info from all species
 
-conInts <- unique(intersect(as.character(datas2$hotspotID[datas2$genome == "ref" & datas2$conState == "con" ]), 
-                            as.character(datas3$hotspotID[datas3$genome == "ref" & datas3$conState == "con" ])
-)
-)
-difInts <- unique(intersect(as.character(datas2$hotspotID[datas2$genome == "ref" & datas2$conState == "dif"]), 
-                            as.character(datas3$hotspotID[datas3$genome == "ref" & datas3$conState == "dif"])
-)
-)
+# then we can cycle through and compare results
 
-ints <- c(conInts, difInts)
+genomeData <- NULL
 
-data0 <- datas2
+for(name1 in snames){
+  
+  # get the other genome ready for analysis
+  otherNames <- snames[snames != name1]
+  otherGenomes <- c(rep(list(NULL), length(otherNames)))
+  names(otherGenomes) <- otherNames
+  for(name2 in 1:length(otherNames)){
+    dat <- read.table(file = paste("data/repeatHotspot/",name1,"/",name1,"_",otherNames[name2],"_conDif.txt", sep = ""), header = TRUE)
+    datRef.gr <- GRanges(seqnames = Rle(dat$chr[dat$genome == "ref"]),
+                         ranges = IRanges(start = dat$start[dat$genome == "ref"], end = dat$end[dat$genome == "ref"]))
+    mcols(datRef.gr) <- dat[dat$genome == "ref", 4:ncol(dat)]
+    seqlevels(datRef.gr) <- seqlevels(genomeInfo[[name1]]$ensGene)
+    seqinfo(datRef.gr) <- seqinfo(genomeInfo[[name1]]$ensGene)
+    
+    refExon.gr <- genomeInfo[[name1]]$exons
+    mcols(datRef.gr)$knownNonExon = mcols(datRef.gr)$known - overlapingBases(dat.gr = datRef.gr, overlap.gr = refExon.gr)
+    
+    refCe.gr <- genomeInfo[[name1]]$nonCodingCe
+    mcols(datRef.gr)$nonCodingCe = overlapingBases(dat.gr = datRef.gr, overlap.gr = refCe.gr)
+
+    mcols(datRef.gr)$refGenome <- name1
+    mcols(datRef.gr)$queGenome <- otherNames[name2]
+    
+    datQue.gr <- GRanges(seqnames = Rle(dat$chr[dat$genome == "que"]),
+                         ranges = IRanges(start = dat$start[dat$genome == "que"], end = dat$end[dat$genome == "que"]))
+    mcols(datQue.gr) <- dat[dat$genome == "que", 4:ncol(dat)]
+    seqlevels(datQue.gr) <- seqlevels(genomeInfo[[otherNames[name2]]]$ensGene)
+    seqinfo(datQue.gr) <- seqinfo(genomeInfo[[otherNames[name2]]]$ensGene)
+    
+    
+    queExon.gr <- genomeInfo[[otherNames[name2]]]$exons
+    mcols(datQue.gr)$knownNonExon = mcols(datQue.gr)$known - overlapingBases(dat.gr = datQue.gr, overlap.gr = queExon.gr)
+    
+    queCe.gr <- genomeInfo[[otherNames[name2]]]$nonCodingCe
+    mcols(datQue.gr)$nonCodingCe = overlapingBases(dat.gr = datQue.gr, overlap.gr = queCe.gr)
+    
+    mcols(datQue.gr)$refGenome <- name1
+    mcols(datQue.gr)$queGenome <- otherNames[name2]
+    
+    
+    genomeData <- rbind(genomeData, rbind(as.data.frame(datRef.gr), as.data.frame(datQue.gr)))
+    
+  }
+  
+}
+
+# queGenome == otherNames[name2]
+
+# there seems to be a problem with the number of known nonExon
 
 
-data1 = data0[data0$genome == "ref" & (data0$conState == "con" | data0$conState == "dif"),]
 
-#data1 = data1[(as.character(data1$hotspotID) %in% ints),]
+for(name1 in snames){
+   otherNames <- snames[snames != name1]
+  #  for(name2 in 1:length(otherNames)){
+  #    for(conState in c("con", "dif")){
+  pdf(file = paste("plots/hotspotOverlap/ceRate/", name1, "_", otherNames[1],"_",otherNames[2],".pdf", sep = ""), height = 12, width = 12)
+  
+  layout(matrix(1:4, nrow = 2, byrow = T))
+  par(xaxs="i", mar = c(5,3,1,1), oma = c(5,5,5,5))
+  for(rep in repGroups){
+    
+    refInts <- filter(ints, genome == name1 & repGroup == rep)
+    newDat <- filter(genomeData, refGenome == name1 & repGroup == rep & conState != "mid" & hotspotID %in% refInts$domains) %>%
+      group_by(genome, conState, refGenome, queGenome, nonCodingCe, knownNonExon , hotspotID, hotspotGroup, known) %>%
+      summarise(nonCodingCeSum = sum(nonCodingCe))
+    
+    newDat$genome <- factor(newDat$genome, levels = c("ref", "que"))
+    
+    newDat$conState <- droplevels(newDat$conState)
+    boxplot( log10((nonCodingCeSum + 1)/knownNonExon) ~ conState + genome+ queGenome ,
+             data = newDat, las = 2, notch = TRUE, xlim = c(.5, 8.5))
+    legend("topleft", legend = c(rep), bty = "n")
+    abline(v = 4.5, lwd = 3); abline(v = 2.5, lwd = 3, lty =2); abline(v = 6.5, lwd = 3, lty = 2)
+    title(main = name1,outer = TRUE)
+  }
+  dev.off()
+  
+}
 
-data1.gr <- GRanges(seqnames = Rle(as.character(data1$chr)),
-                   ranges = IRanges(start = data1$start, end = data1$end))
+
+for(name1 in snames){
+  otherNames <- snames[snames != name1]
+  #  for(name2 in 1:length(otherNames)){
+  #    for(conState in c("con", "dif")){
+  pdf(file = paste("plots/hotspotOverlap/insertionRateInt/", name1, "_", otherNames[1],"_",otherNames[2],".pdf", sep = ""), height = 12, width = 12)
+  
+  layout(matrix(1:4, nrow = 2, byrow = T))
+  par(xaxs="i", mar = c(5,3,1,1), oma = c(5,5,5,5))
+  for(rep in repGroups){
+    
+    refInts <- filter(ints, genome == name1 & repGroup == rep)
+    newDat <- filter(genomeData, refGenome == name1 & repGroup == rep & conState != "mid" & hotspotID %in% refInts$domains) %>%
+      group_by(genome, conState, refGenome, queGenome, insertionRate, knownNonExon , hotspotID, hotspotGroup, known) %>%
+      summarise(nonCodingCeSum = sum(insertionRate))
+    
+    newDat$genome <- factor(newDat$genome, levels = c("ref", "que"))
+    
+    newDat$conState <- droplevels(newDat$conState)
+    boxplot( ((nonCodingCeSum + 1)/known) ~ conState + genome+ queGenome ,
+             data = newDat, las = 2, notch = TRUE, xlim = c(.5, 8.5))
+    legend("topleft", legend = c(rep), bty = "n")
+    abline(v = 4.5, lwd = 3); abline(v = 2.5, lwd = 3, lty =2); abline(v = 6.5, lwd = 3, lty = 2)
+    title(main = paste(name1, "insertionRate"),outer = TRUE)
+  }
+  dev.off()
+  
+}
 
 
-oldomain <- as.matrix(findOverlaps(data1.gr, exons(txdb)))
-a <- aggregate(width(GenomicRanges::pintersect(data1.gr[oldomain[,1]], exons(txdb)[oldomain[,2]])), by = list(oldomain[,1]), FUN = sum)
-
-data1$known[a$Group.1] = data1$known[a$Group.1] - a$x
 
 
-ol <- as.matrix(findOverlaps(data1.gr, nonCodingCe.gr))
+for(name1 in snames){
+  otherNames <- snames[snames != name1]
+  #  for(name2 in 1:length(otherNames)){
+  #    for(conState in c("con", "dif")){
+  pdf(file = paste("plots/hotspotOverlap/insertionRateInt/", name1, "_", otherNames[1],"_",otherNames[2],"noInt.pdf", sep = ""), height = 12, width = 12)
+  
+  layout(matrix(1:4, nrow = 2, byrow = T))
+  par(xaxs="i", mar = c(5,3,1,1), oma = c(5,5,5,5))
+  for(rep in repGroups){
+    
+    newDat <- filter(genomeData, refGenome == name1 & repGroup == rep & conState != "mid") %>%
+      group_by(genome, conState, refGenome, queGenome, insertionRate, knownNonExon , hotspotID, hotspotGroup, known) %>%
+      summarise(nonCodingCeSum = sum(insertionRate))
+    
+    newDat$genome <- factor(newDat$genome, levels = c("ref", "que"))
+    
+    newDat$conState <- droplevels(newDat$conState)
+    boxplot( ((nonCodingCeSum + 1)/known) ~ conState + genome+ queGenome ,
+             data = newDat, las = 2, notch = TRUE, xlim = c(.5, 8.5))
+    legend("topleft", legend = c(rep), bty = "n")
+    abline(v = 4.5, lwd = 3); abline(v = 2.5, lwd = 3, lty =2); abline(v = 6.5, lwd = 3, lty = 2)
+    title(main = paste(name1, "insertionRate"),outer = TRUE)
+  }
+  dev.off()
+  
+}
 
-data3 <- data.frame(data1[ol[,1],], ce = width(ce.gr[ol[,2]]))
-
-df <- summarise(group_by(data3, hotspotGroup, conState, hotspotID, repGroup, known), sum(ce))
-df <- df[df$conState != "mid",]
-df$conState <- droplevels(df$conState)
-df$ceRate <- df$`sum(ce)`/df$known
-
-df1 <- summarise(group_by(df, hotspotGroup, conState, repGroup), mean = mean(ceRate), n())
+# so far this is not getting the intersect. 
 
 
-layout(1)
-par(mar = c(10,5,5,5))
-boxplot((df$ceRate) ~ df$conState + df$repGroup , las = 2, outline = T, notch  = T, log = "y")
-stripchart((df1$mean) ~ df1$conState + df1$repGroup, method = "jitter",
-           pch = 16, cex = sqrt(df1$`n()`/5), 
-           vert = T, add = T, jitter = .35)
+
+
+
+# so now I have dog coordinates
 
 
 # not really seeing any differences between conserved and non conserved
@@ -93,10 +241,37 @@ stripchart((df1$mean) ~ df1$conState + df1$repGroup, method = "jitter",
 # in the referecne everything is pretty similar
 
 
+# there's a couple of interesting small indicators. 
 
-plot(density((df$ceRate[df$repGroup == "ancient" & df$conState == "con"])))
-lines(density((df$ceRate[df$repGroup == "ancient" & df$conState == "dif"])),col = 2)
+# lets get these plots looking pretty
+
+  
+eLength <- genomeData[genomeData$knownNonExon < 0,]
+  
+e <- genomeInfo$mm9$exons[seqnames(genomeInfo$mm9$exons) == "chr17" & start(genomeInfo$mm9$exons) > 35050001 & end(genomeInfo$mm9$exons) < 35100000]
+
+gd <- (genomeData[genomeData$knownNonExon < 0,])[2:6,]
+
+50000 - sum(width(e)) * 5
 
 
-a <- summarise(group_by(data1, repGroup, conState),n())
-a[,3] <- a[,3]/20
+# becasue multiple ref bins point to one query bin. 
+
+genomeData[genomeData$hotspotID %in% gd$hotspotID & genomeData$genome == "ref" & genomeData$refGenome == "hg19" & genomeData$queGenome == "mm9",]
+
+
+
+
+genomeData[genomeData$hotspotID == "new_SINE;4571" & genomeData$genome == "que" & genomeData$refGenome == "hg19" & genomeData$queGenome == "mm9",]
+
+
+genomeData[genomeData$hotspotID == "new_SINE;1077"  & genomeData$refGenome == "hg19",]
+
+
+# seems like the target missed.
+# at some point during our overlap where we tried to assing bins , we missed. 
+
+
+
+
+

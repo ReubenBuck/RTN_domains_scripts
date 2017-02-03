@@ -262,6 +262,15 @@ extractInsertionRates <- function(refGenome.gr, queGenome.gr, refCorresponding, 
 #aggregate(x = start(refCor), by = elementMetadata(refCor)
 #df <- data.frame(insertionRate = as.matrix(elementMetadata(genome.gr[ol[,1]])[rep]), elementMetadata(refCor[ol[,2]])[c("hotspotID", "hotspotGroup")] )
 
-
-
+# the number of overlapping bases between a dat.gr and overlap.gr
+# the results are in reference to dat.gr
+overlapingBases <- function(dat.gr, overlap.gr){
+  m <- as.matrix(findOverlaps(dat.gr, overlap.gr)) 
+  p <- pintersect(dat.gr[m[,1]], overlap.gr[m[,2]])
+  m2 <- as.matrix(findOverlaps(dat.gr, p)) 
+  agg <- aggregate(width(p[m2[,2]]), by = list(m2[,1]), FUN= sum)
+  res = rep(0, length(dat.gr))
+  res[agg$Group.1] = agg$x
+  return(res)
+}
 

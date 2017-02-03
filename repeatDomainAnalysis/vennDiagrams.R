@@ -5,12 +5,12 @@ rm(list=ls())
 
 setwd(dir = "Desktop/RTN_domains/")
 
-library(venn)
 
 repGroups = c("ancient", "new_SINE", "new_L1", "old_L1")
 repCols = c("darkblue", "aquamarine3", "purple", "red")
-
 snames <- c(s1name = "hg19", s2name = "mm9", s3name = "canFam3")
+
+genomeIntersect <- NULL
 
 vennAll <- NULL
 for(name1 in snames){
@@ -26,20 +26,25 @@ for(name1 in snames){
                                      "hotspotID"]))
       y = unique(as.character(data_2[data_2$genome == "ref" & data_2$conState == conState & data_2$repGroup == rep, 
                                      "hotspotID"]))
-      xy.int <- length(intersect(x,y))
-      x.len <- length(x) - xy.int
-      y.len <- length(y) - xy.int
+      xy.int <- intersect(x,y)
+      x.len <- length(x) - length(xy.int)
+      y.len <- length(y) - length(xy.int)
       # save this data to a list object so it cna be plotted later. 
       venn1 = data.frame(ref = name1,que1 = otherNames[1], que2 = otherNames[2], 
                 conState = conState, repGroup = rep ,que1S = x.len, 
-                que2S = y.len, que1_que2_int = xy.int)
+                que2S = y.len, que1_que2_int = length(xy.int))
       vennAll = rbind(vennAll, venn1)
+      
+      df = data.frame(genome = name1,conState = conState , repGroup = rep ,domains = as.character(xy.int))
+      genomeIntersect <- rbind(genomeIntersect, df)
     }
   }
 }
 
+write.table(genomeIntersect, file = "data/repeatHotspot/intersect.txt", 
+            sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
 
-
+# we can just save the intersect IDs. 
 # the hotspots in dog, 
 # which ones are conserved between dog and human 
 # which ones are conserved between dog and mouse
@@ -92,8 +97,8 @@ for(ref in snames){
   }
 }
 
-mtext("Conserved hotspots", side = 3, line = 2, outer = TRUE, at = .25, cex = 2)
-mtext("Non-conserved hotspots", side = 3, line = 2, outer = TRUE, at = .75, cex = 2)
+mtext("HH domains", side = 3, line = 2, outer = TRUE, at = .25, cex = 2)
+mtext("HL domains", side = 3, line = 2, outer = TRUE, at = .75, cex = 2)
 
 dev.off()
 

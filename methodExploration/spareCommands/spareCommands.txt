@@ -1,0 +1,10 @@
+# spare commands 
+
+# remove decimal places from a specific column 
+
+
+cat human.Vs.mouse.out | awk '{gsub("\\..+","",$2);print}' | awk '{gsub("\\..+","",$1);print}' > human.Vs.mouse.out.Deci
+
+# reciprocal best hits 
+
+cat ../blasting/mouse.Vs.human/mouse.Vs.human.out.Deci ../blasting/human.Vs.mouse/human.Vs.mouse.out.Deci | ./recip > orthoMouseHumanDeci.txt
