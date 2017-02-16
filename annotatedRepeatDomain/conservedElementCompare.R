@@ -6,6 +6,9 @@ setwd("~/Desktop/RTN_domains/")
 library(GenomicRanges)
 library(dplyr)
 library(RMySQL)
+library(devtools)
+devtools::source_url("http://raw.githubusercontent.com/ReubenBuck/RTN_domains_scripts/master/rtnDomainFunctions.R")
+
 
 
 repGroups = c("ancient", "new_SINE", "new_L1", "old_L1")
@@ -148,12 +151,13 @@ for(name1 in snames){
     newDat$genome <- factor(newDat$genome, levels = c("ref", "que"))
     
     newDat$conState <- droplevels(newDat$conState)
-    boxplot( log10((nonCodingCeSum + 1)/knownNonExon) ~ conState + genome+ queGenome ,
-             data = newDat, las = 2, notch = TRUE, xlim = c(.5, 8.5))
+    boxplot( log10((nonCodingCeSum + 1)/knownNonExon * 100 ) ~ conState + genome+ queGenome ,
+             data = newDat, las = 2, notch = TRUE, xlim = c(.5, 8.5), ylim = c(-2,2))
     legend("topleft", legend = c(rep), bty = "n")
     abline(v = 4.5, lwd = 3); abline(v = 2.5, lwd = 3, lty =2); abline(v = 6.5, lwd = 3, lty = 2)
     title(main = name1,outer = TRUE)
   }
+  mtext(side = 2, text = "% Non-exonic conserved elements (log10)", outer = TRUE)
   dev.off()
   
 }
@@ -177,12 +181,14 @@ for(name1 in snames){
     newDat$genome <- factor(newDat$genome, levels = c("ref", "que"))
     
     newDat$conState <- droplevels(newDat$conState)
-    boxplot( ((nonCodingCeSum + 1)/known) ~ conState + genome+ queGenome ,
+    boxplot( (((nonCodingCeSum + 1)/known)*50e3 ) ~ conState + genome+ queGenome ,
              data = newDat, las = 2, notch = TRUE, xlim = c(.5, 8.5))
     legend("topleft", legend = c(rep), bty = "n")
     abline(v = 4.5, lwd = 3); abline(v = 2.5, lwd = 3, lty =2); abline(v = 6.5, lwd = 3, lty = 2)
     title(main = paste(name1, "insertionRate"),outer = TRUE)
   }
+  mtext(side = 2, text = "Elements per 50kb", outer = TRUE)
+  
   dev.off()
   
 }
@@ -207,12 +213,13 @@ for(name1 in snames){
     newDat$genome <- factor(newDat$genome, levels = c("ref", "que"))
     
     newDat$conState <- droplevels(newDat$conState)
-    boxplot( ((nonCodingCeSum + 1)/known) ~ conState + genome+ queGenome ,
+    boxplot( (((nonCodingCeSum + 1)/known)*50e3 ) ~ conState + genome+ queGenome ,
              data = newDat, las = 2, notch = TRUE, xlim = c(.5, 8.5))
     legend("topleft", legend = c(rep), bty = "n")
     abline(v = 4.5, lwd = 3); abline(v = 2.5, lwd = 3, lty =2); abline(v = 6.5, lwd = 3, lty = 2)
     title(main = paste(name1, "insertionRate"),outer = TRUE)
   }
+  mtext(side = 2, text = "Elements per 50kb", outer = TRUE)
   dev.off()
   
 }

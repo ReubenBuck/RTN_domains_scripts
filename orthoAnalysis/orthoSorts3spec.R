@@ -50,6 +50,35 @@ colnames(ortho)[3] = colnames(m)[3]
 
 orthoDf <- data.frame(orthoID = paste("ortho", 1:nrow(ortho), sep = "_"), ortho)
 
+sEnsGene <- list(NA,NA,NA)
+names(sEnsGene) <- snames
+for(s in snames){
+  
+  mychannel <- dbConnect(MySQL(), user="genome", host="genome-mysql.cse.ucsc.edu", db = s)
+  ensGene <- dbGetQuery(mychannel, "SELECT * FROM ensGene;")
+  
+  
+  orthoDf <- orthoDf[orthoDf[,s] %in% ensGene$name,]
+  
+  rownames(ensGene) <- ensGene$name
+  
+  ensGene <- data.frame(ensGene[orthoDf[,s],], orthoID = orthoDf$orthoID)
+  
+  rownames(ensGene) <- ensGene$orthoID
+  
+  
+  sEnsGene[[s]] <- ensGene
+}
+
+# make sure we keep genes with the same exon count
+for(s in snames){
+  sEnsGene[[s]] <- sEnsGene[[s]][orthoDf$orthoID,]
+}
+
+orthoDf = orthoDf[sEnsGene[["hg19"]]$exonCount == sEnsGene[["mm9"]]$exonCount & 
+      sEnsGene[["hg19"]]$exonCount == sEnsGene[["canFam3"]]$exonCount & 
+      sEnsGene[["mm9"]]$exonCount == sEnsGene[["canFam3"]]$exonCount,]
+
 write.table(x = orthoDf, file ="data/orthoAnalysis/orhtoList/ortholist.txt", quote = F,sep = "\t",row.names = F,col.names = T)
 
 
