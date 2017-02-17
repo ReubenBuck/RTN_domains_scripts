@@ -16,6 +16,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -87,7 +88,16 @@ var chainLimit int
 
 func main() {
 
-	f, err := os.Open(os.Args[1])
+	//os.Args[1] chainFile
+	//os.Args[2] chainLimit
+	//os.Args[3] alignmnetGap
+
+	chainPtr := flag.String("chainFile", "", "UCSC chain file to break and merge")
+	numbPtr := flag.Int("minGapSize", 10, "minimum acceptable gap size")
+
+	flag.Parse()
+
+	f, err := os.Open(*chainPtr)
 	if err != nil {
 		log.Fatalf("reading file: %v", err)
 	}
@@ -99,11 +109,11 @@ func main() {
 	sc := bufio.NewScanner(f)
 	sc.Split(bufio.ScanLines)
 	// could insert a counter here to determne how many chains to read in
-	chainLimit, err = strconv.Atoi(os.Args[2])
+	// chainLimit, err = strconv.Atoi(os.Args[2])
 	if err != nil {
 		log.Fatalf("chain limit did not convert: %v", err)
 	}
-	chainCount := 0
+	//chainCount := 0
 	for sc.Scan() {
 
 		line := sc.Text()
@@ -115,10 +125,10 @@ func main() {
 		}
 		words := strings.Split(line, " ")
 		if words[0] == "chain" {
-			if chainCount == chainLimit {
-				break
-			}
-			chainCount++
+			// if chainCount == chainLimit {
+			// 	break
+			// }
+			// chainCount++
 			chain.header.score, err = strconv.Atoi(words[1])
 			chain.header.refName = words[2]
 			chain.header.refSize, err = strconv.Atoi(words[3])
@@ -156,7 +166,7 @@ func main() {
 
 	var rangeGenome rangeObject
 	var rangeGenomes rangeObjects
-	minAlign, err := strconv.Atoi(os.Args[3])
+	minAlign := *numbPtr
 	if err != nil {
 		log.Fatalf("min Align convert fail: %v", err)
 	}
