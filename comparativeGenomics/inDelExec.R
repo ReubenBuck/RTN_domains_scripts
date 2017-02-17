@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 # exacutable version of our program 
 
 # read in the alignment blocks 
