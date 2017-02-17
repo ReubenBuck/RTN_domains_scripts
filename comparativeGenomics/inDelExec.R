@@ -42,7 +42,7 @@ if(any(is.na(opt))){
 
 
 library("GenomicRanges")
-library("RMySQL")
+#library("RMySQL")
 
 
 ### reading in data files
@@ -51,8 +51,16 @@ library("RMySQL")
 #opt$query2 <- "~/Desktop/RTN_domains/data/chainAlignments/inDelTest/canFam2mm9.out"
 #opt$referenceName <- "canFam2"
 
-mychannel <- dbConnect(MySQL(), user="genome", host="genome-mysql.cse.ucsc.edu", db = opt$referenceName)
-chrInfo <- dbGetQuery(mychannel, "SELECT * FROM chromInfo;")
+#mychannel <- dbConnect(MySQL(), user="genome", host="genome-mysql.cse.ucsc.edu", db = opt$referenceName)
+
+
+con <- gzcon(url(paste("http://hgdownload.soe.ucsc.edu/goldenPath/",opt$referenceName,"/database/chromInfo.txt.gz", sep="")))
+txt <- readLines(con)
+dat <- read.delim(textConnection(txt), header = FALSE)
+colnames(dat) = c("chrom", "size", "fileName")
+chrInfo <- dat
+
+#chrInfo <- dbGetQuery(mychannel, "SELECT * FROM chromInfo;")
 
 
 queSpecies <- list(que1 = NA, que2 = NA )
