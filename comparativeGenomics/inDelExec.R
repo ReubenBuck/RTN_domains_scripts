@@ -47,9 +47,9 @@ library("GenomicRanges")
 
 ### reading in data files
 
-#opt$query1 <- "~/Desktop/RTN_domains/data/chainAlignments/inDelTest/canFam2Hg19.out"
-#opt$query2 <- "~/Desktop/RTN_domains/data/chainAlignments/inDelTest/canFam2mm9.out"
-#opt$referenceName <- "canFam2"
+opt$query1 <- "~/Desktop/RTN_domains/data/chainAlignments/inDelTest/canFam2Hg19.out"
+opt$query2 <- "~/Desktop/RTN_domains/data/chainAlignments/inDelTest/canFam2mm9.out"
+opt$referenceName <- "canFam2"
 
 #mychannel <- dbConnect(MySQL(), user="genome", host="genome-mysql.cse.ucsc.edu", db = opt$referenceName)
 
@@ -132,6 +132,10 @@ for(i in 1:2){
 
 # do we make them gRanges
 
+# how do we remove overlapping blocks
+
+
+
 
 
 intRange <- intersect(queSpecies$que1$Raw.gr, queSpecies$que2$Raw.gr)
@@ -173,8 +177,10 @@ que2RefU <- que2Ref.gr[!(que2Ref.gr %in% que2RefC)]
 
 # making sure that we have ref gaps that 
 que1RefU <- subsetByOverlaps(que1RefU, reduce(queSpecies$que2$Raw.gr), type = "within")
-que2RefU <- subsetByOverlaps(que2RefU, reduce(queSpecies$que1$Raw.gr), type = "within")
+mcols(que1RefU)$inDel <- "del"
 
+que2RefU <- subsetByOverlaps(que2RefU, reduce(queSpecies$que1$Raw.gr), type = "within")
+mcols(que2RefU)$inDel <- "del"
 
 que1Que.gr <- subsetByOverlaps(queSpecies$que1$queGap, intRange)
 que2Que.gr <- subsetByOverlaps(queSpecies$que2$queGap, intRange)
@@ -182,28 +188,89 @@ que2Que.gr <- subsetByOverlaps(queSpecies$que2$queGap, intRange)
 
 que1QueC <- subsetByOverlaps(que1Que.gr, que2Que.gr)
 que1QueU <- que1Que.gr[!(que1Que.gr %in% que1QueC)]
+mcols(que1QueU)$inDel <- "ins"
 
 que2QueC <- subsetByOverlaps(que2Que.gr, que1Que.gr)
 que2QueU <- que2Que.gr[!(que2Que.gr %in% que2QueC)]
+mcols(que2QueU)$inDel <- "ins"
+
+
+que1U.gr <- c(que1QueU, que1RefU)
+que2U.gr <- c(que2QueU, que2RefU)
+
+
+# adjust orientation
+
+dfQue1 <- as.data.frame(mcols(que1U.gr)[c("queRange", "queOrientation", "queSeqlength")])
+dfQue1[dfQue1$queOrientation == "-",c("queRange.start","queRange.end")] <- dfQue1$queSeqlength[dfQue1$queOrientation == "-"] - 
+  dfQue1[dfQue1$queOrientation == "-",c("queRange.end","queRange.start")]
+
+mcols(que1U.gr)$queRange <- GRanges(seqnames = Rle(dfQue1$queRange.seqnames),
+                                    ranges = IRanges(start = dfQue1$queRange.start, 
+                                                     end = dfQue1$queRange.end))
+
+
+dfQue2 <- as.data.frame(mcols(que2U.gr)[c("queRange", "queOrientation", "queSeqlength")])
+dfQue2[dfQue2$queOrientation == "-",c("queRange.start","queRange.end")] <- dfQue2$queSeqlength[dfQue2$queOrientation == "-"] - 
+  dfQue2[dfQue2$queOrientation == "-",c("queRange.end","queRange.start")]
+
+mcols(que2U.gr)$queRange <- GRanges(seqnames = Rle(dfQue2$queRange.seqnames),
+                                    ranges = IRanges(start = dfQue2$queRange.start, 
+                                                     end = dfQue2$queRange.end))
 
 
 print("got indels")
 
+# Remove gaps overlapping blocks in query
+que1U.gr <- que1U.gr[ !overlapsAny(mcols(que1U.gr)$queRange, mcols(queSpecies$que1$Raw.gr)$queRange, minoverlap = 2) ]
+mcols(que1U.gr)$rowNum <- 1:length(que1U.gr)
+que2U.gr <- que2U.gr[ !overlapsAny(mcols(que2U.gr)$queRange, mcols(queSpecies$que2$Raw.gr)$queRange, minoverlap = 2) ]
+mcols(que2U.gr)$rowNum <- 1:length(que2U.gr)
+
+# remove both equal overlapping gaps and non-equal overlapping gaps until gaps are at depth 1
+for(i in c("que1U.gr", "que2U.gr")){
+  
+  queU.gr <- get(i)
+  
+  queU.gr <- queU.gr[order(mcols(queU.gr)$chainID)]
+  ol <- findOverlaps(mcols(queU.gr)$queRange, type = "equal")
+  if(length(ol) != length(queU.gr)){
+    queU.gr <- queU.gr[-subjectHits(ol[(duplicated(queryHits(ol)))])]
+  }
+  
+  cU.gr <- queU.gr[order(width(mcols(queU.gr)$queRange), decreasing = TRUE)]
+  ol <- findOverlaps(mcols(cU.gr)$queRange)
+  cUOL.gr <- cU.gr[ subjectHits(ol[queryHits(ol) %in% unique(queryHits(ol[duplicated(queryHits(ol))]) )  ]) ]
+  mcols(cUOL.gr)$QhitId <- queryHits(ol[queryHits(ol) %in% unique(queryHits(ol[duplicated(queryHits(ol))]) )  ])
+  
+  while(length(unique(mcols(cUOL.gr)$QhitId)) > 0){
+    cU.gr <- queU.gr[order(width(mcols(queU.gr)$queRange), decreasing = TRUE)]
+    ol <- findOverlaps(mcols(cU.gr)$queRange)
+    cUOL.gr <- cU.gr[ subjectHits(ol[queryHits(ol) %in% unique(queryHits(ol[duplicated(queryHits(ol))]) )  ]) ]
+    mcols(cUOL.gr)$QhitId <- queryHits(ol[queryHits(ol) %in% unique(queryHits(ol[duplicated(queryHits(ol))]) )  ])
+    
+    cUOL.gr <- cUOL.gr[order(width(cUOL.gr), decreasing = TRUE)]
+    sp <- split(x = mcols(cUOL.gr)$rowNum, f = as.factor(mcols(cUOL.gr)$QhitId))
+    l <- unlist(lapply(X = sp, FUN = getElement, name = 1))
+    queU.gr <- queU.gr[!(mcols(queU.gr)$rowNum %in% l)]
+  }
+  
+  queU.gr <- queU.gr[order(mcols(queU.gr)$rowNum)]
+  mcols(queU.gr) <- subset(mcols(queU.gr), select = -rowNum)
+  assign(x = i,value = queU.gr)
+  
+}
 
 
 
-dfQue1 <- as.data.frame(c(que1QueU, que1RefU))
-dfQue1$inDel <- c(rep("ins", length(que1QueU)), rep("del", length(que1RefU)))
-
-dfQue1[dfQue1$queOrientation == "-",c("queRange.start","queRange.end")] <- dfQue1$queSeqlength[dfQue1$queOrientation == "-"] - 
-  dfQue1[dfQue1$queOrientation == "-",c("queRange.end","queRange.start")]
 
 
-dfQue2 <- as.data.frame(c(que2QueU, que2RefU))
-dfQue2$inDel <- c(rep("ins", length(que2QueU)), rep("del", length(que2RefU)))
 
-dfQue2[dfQue2$queOrientation == "-",c("queRange.start","queRange.end")] <- dfQue2$queSeqlength[dfQue2$queOrientation == "-"] - 
-  dfQue2[dfQue2$queOrientation == "-",c("queRange.end","queRange.start")]
+
+dfQue1 <- as.data.frame(que1U.gr)
+
+dfQue2 <- as.data.frame(que2U.gr)
+
 
 print("df conversion")
 
