@@ -47,9 +47,9 @@ library("GenomicRanges")
 
 ### reading in data files
 
-opt$query1 <- "~/Desktop/RTN_domains/data/chainAlignments/inDelTest/canFam2Hg19.out"
-opt$query2 <- "~/Desktop/RTN_domains/data/chainAlignments/inDelTest/canFam2mm9.out"
-opt$referenceName <- "canFam2"
+# opt$query1 <- "~/Desktop/RTN_domains/data/chainAlignments/inDelTest/canFam2Hg19.out"
+# opt$query2 <- "~/Desktop/RTN_domains/data/chainAlignments/inDelTest/canFam2mm9.out"
+# opt$referenceName <- "canFam2"
 
 #mychannel <- dbConnect(MySQL(), user="genome", host="genome-mysql.cse.ucsc.edu", db = opt$referenceName)
 
