@@ -8,7 +8,6 @@ rm(list = ls())
 
 options(stringsAsFactors = FALSE)
 
-#!/usr/bin/env Rscript
 
 library("optparse")
 
