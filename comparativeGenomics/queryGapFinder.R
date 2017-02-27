@@ -202,7 +202,7 @@ while(length(unique(mcols(cUOL.gr)$QhitId)) > 0){
 
 queU.gr <- queU.gr[order(mcols(queU.gr)$rowNum)]
 mcols(queU.gr) <- subset(mcols(queU.gr), select = -rowNum)
-assign(x = i,value = queU.gr)
+assign(x = "que1U.gr",value = queU.gr)
 
 
 
