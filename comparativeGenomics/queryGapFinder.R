@@ -33,9 +33,9 @@ if(any(is.na(opt))){
 }
 
 
-opt$query = "~/Desktop/RTN_domains/data/chainAlignments/hg19/mm10/hg19.mm10.brokenChain"
-opt$queryName1 = "hg19"
-opt$queryName2 = "mm10"
+#opt$query = "~/Desktop/RTN_domains/data/chainAlignments/hg19/mm10/hg19.mm10.brokenChain"
+#opt$queryName1 = "hg19"
+#opt$queryName2 = "mm10"
 
 
 
