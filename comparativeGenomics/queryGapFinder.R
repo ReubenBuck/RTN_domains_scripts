@@ -216,7 +216,7 @@ print("df conversion")
 
 #### Write out table
 
-que1File <- paste(opt$outDir, "/",opt$queryName1,"_que.", opt$queryName2e,"_ref.", "indel", sep = "")
+que1File <- paste(opt$outDir, "/",opt$queryName1,".", opt$queryName2,".", "que.indel", sep = "")
 write.table(x = dfQue1 ,file = que1File, sep = "\t", quote = FALSE, row.names = FALSE)
 
 
