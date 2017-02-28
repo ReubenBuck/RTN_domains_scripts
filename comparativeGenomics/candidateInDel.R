@@ -186,20 +186,15 @@ reducedCandidates.df <- as.data.frame(reducedCandidates)
 allCandidates.df <- as.data.frame(allCandidates)
 
 
-write.table(x = reducedCandidates.df, file = paste(opt$outDir,"/",opt$queryName,".supportedIndel.merged",sep = "" ))
+write.table(x = reducedCandidates.df, file = paste(opt$outDir,"/",opt$queryName,".supportedIndel.merged",sep = "" ), sep = "\t", quote = FALSE,row.names = FALSE, col.names = TRUE)
 
-write.table(x = allCandidates.df, file = paste(opt$outDir,"/",opt$queryName,".supportedIndel.all",sep = "" ))
+write.table(x = allCandidates.df, file = paste(opt$outDir,"/",opt$queryName,".supportedIndel.all",sep = "" ), sep = "\t", quote = FALSE,row.names = FALSE, col.names = TRUE)
 
 
 ## combine obects
 ## Two outputs 
 ## Suprted ranges 
 ## merged ranges
-
-
-
-
-
 
 # 
 # hist(log10((mcols(refIns.gr)$gapWidth)), breaks = 100)
