@@ -93,7 +93,7 @@ canDel.gr <- allDel.gr[queryHits(supDel)[
   abs(olWidths$queryHitWidth - olWidths$subjectHitWidth) < .2 * apply(X = olWidths,FUN = min,MARGIN = 1)]
   ]
 
-canDel.gr <- GRanges(unique(as.data.frame(canDel.gr)))
+canDel.gr <- makeGRangesFromDataFrame(unique(as.data.frame(canDel.gr)))
 mcols(canDel.gr)$subjectID <- paste("del:", 1:length(canDel.gr), sep = "")
 ReduceCanDel.gr <- reduce(resize(canDel.gr, width = 1, fix = "center"))
 
@@ -151,7 +151,7 @@ olWidths <- data.frame(queryHitWidth = mcols(allIns.gr)$gapWidth[queryHits(supIn
 canIns.gr <- allIns.gr[queryHits(supIns)[ 
   abs(olWidths$queryHitWidth - olWidths$subjectHitWidth) < .2 * apply(X = olWidths,FUN = min,MARGIN = 1)]
   ]
-canIns.gr <- GRanges(unique(as.data.frame(canIns.gr)))
+canIns.gr <- makeGRangesFromDataFrame(unique(as.data.frame(canIns.gr)))
 mcols(canIns.gr)$subjectID <- paste("ins:", 1:length(canIns.gr), sep = "")
 ReduceCanIns.gr <- reduce(resize(canIns.gr, width = 10, fix = "center"))
 
