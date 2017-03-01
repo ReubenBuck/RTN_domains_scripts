@@ -208,7 +208,7 @@ assign(x = "que1U.gr",value = queU.gr)
 
 dfQue1 <- as.data.frame(que1U.gr)
 
-dfQu1$queryGapID = paste(opt$queryName1,opt$queryName2,1:nrow(dfQue1), sep = ";")
+dfQue1$queryGapID = paste(opt$queryName1,opt$queryName2,1:nrow(dfQue1), sep = ";")
 
 print("df conversion")
 
