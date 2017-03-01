@@ -142,12 +142,12 @@ print("intGap sorted")
 
 olrefQue1 <- as.matrix(findOverlaps(gapsSepc$refGap, intRangeGaps, type = "equal"))
 que1Ref.gr <- gapsSepc$refGap[olrefQue1[,1]]
-mcols(que1Ref.gr)$inDel <- "del"
+mcols(que1Ref.gr)$inDel <- "ins"
 
 
 
 que1Que.gr <- subsetByOverlaps(gapsSepc$queGap, intRange)
-mcols(que1Que.gr)$inDel <- "ins"
+mcols(que1Que.gr)$inDel <- "del"
 
 
 
@@ -208,7 +208,7 @@ assign(x = "que1U.gr",value = queU.gr)
 
 dfQue1 <- as.data.frame(que1U.gr)
 
-
+dfQu1$queryGapID = paste(opt$queryName1,opt$queryName2,1:nrow(dfQue1), sep = ";")
 
 print("df conversion")
 
