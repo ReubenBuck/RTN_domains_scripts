@@ -168,10 +168,10 @@ olrefQue2 <- as.matrix(findOverlaps(queSpecies$que2$refGap, intRangeGaps, type =
 que2Ref.gr <- queSpecies$que2$refGap[olrefQue2[,1]]
 
 
-que1RefC <- subsetByOverlaps(que1Ref.gr, que2Ref.gr, type = "equal", minoverlap = 10)
+que1RefC <- subsetByOverlaps(que1Ref.gr, que2Ref.gr, type = "equal")
 que1RefU <- que1Ref.gr[!(que1Ref.gr %in% que1RefC)]
 
-que2RefC <- subsetByOverlaps(que2Ref.gr, que1Ref.gr, type = "equal", minoverlap = 10)
+que2RefC <- subsetByOverlaps(que2Ref.gr, que1Ref.gr, type = "equal")
 que2RefU <- que2Ref.gr[!(que2Ref.gr %in% que2RefC)]
 
 # making sure that we have ref gaps that 
@@ -185,11 +185,11 @@ que1Que.gr <- subsetByOverlaps(queSpecies$que1$queGap, intRange)
 que2Que.gr <- subsetByOverlaps(queSpecies$que2$queGap, intRange)
 
 
-que1QueC <- subsetByOverlaps(que1Que.gr, que2Que.gr, minoverlap = 10)
+que1QueC <- subsetByOverlaps(que1Que.gr, que2Que.gr)
 que1QueU <- que1Que.gr[!(que1Que.gr %in% que1QueC)]
 mcols(que1QueU)$inDel <- "ins"
 
-que2QueC <- subsetByOverlaps(que2Que.gr, que1Que.gr, minoverlap = 10)
+que2QueC <- subsetByOverlaps(que2Que.gr, que1Que.gr)
 que2QueU <- que2Que.gr[!(que2Que.gr %in% que2QueC)]
 mcols(que2QueU)$inDel <- "ins"
 
