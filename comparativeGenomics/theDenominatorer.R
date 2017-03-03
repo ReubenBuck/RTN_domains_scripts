@@ -95,7 +95,6 @@ queSpec <- read.table(file = queFile,
                                      "numeric")
 )
 
-# lets do the switch here
 
 queSpecRaw.gr <- GRanges(seqnames = Rle(queSpec$refChr), 
                          ranges = IRanges(start = queSpec$refStart, end = queSpec$refEnd)
@@ -113,8 +112,8 @@ queSpecRed.gr <- reduce(queSpecRaw.gr)
 
 denom.gr <- intersect(queSpecRed.gr, refSpecUnion.gr)
 
-denom.df <- data.frame(denom.gr)
+denom.df <- as.data.frame(denom.gr)
 
 
-write.table(denom.df, file = paste(opt$outDir,"/",opt$queryName,".base",sep = ""), quote = FALSE, sep = "\t")
+write.table(denom.df, file = paste(opt$outDir,"/",opt$queryName,".base",sep = ""), quote = FALSE, sep = "\t", row.names = FALSE)
 
