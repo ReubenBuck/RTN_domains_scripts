@@ -33,11 +33,10 @@ if(any(is.na(opt))){
 }
 
 
-#opt$queryGaps <- "Desktop/RTN_domains/data/comparativeGenomics/queGenomes/gaps/mm10.hg19.que.indel"
-#opt$queryName <- "mm10"
-
-#opt$inputDir <- "Desktop/RTN_domains/data/comparativeGenomics/inDel/"
-
+opt$queryGaps <- "Desktop/RTN_domains/data/comparativeGenomics/queGenomes/gaps/mm10.hg19.que.indel"
+opt$queryName <- "mm10"
+opt$inputDir <- "Desktop/RTN_domains/data/comparativeGenomics/inDel/mappedIndels/"
+opt$outDir <- "Desktop/RTN_domains/data/comparativeGenomics/supportedIndels/"
 
 
 
@@ -221,10 +220,9 @@ allCandidates.df <- as.data.frame(allCandidates)
 
 
 
-
-
-write.table(x = rkeepCandidates.df, file = paste(opt$outDir,"/",opt$queryName,".supportedIndel.que",sep = "" ), 
+write.table(x = keepCandidates.df, file = paste(opt$outDir,"/",opt$queryName,".supportedIndel.que",sep = "" ), 
             sep = "\t", quote = FALSE,row.names = FALSE, col.names = TRUE)
+
 
 write.table(x = allCandidates.df, file = paste(opt$outDir,"/",opt$queryName,".supportedIndel.ref",sep = "" ), 
             sep = "\t", quote = FALSE,row.names = FALSE, col.names = TRUE)
