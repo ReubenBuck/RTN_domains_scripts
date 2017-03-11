@@ -37,7 +37,7 @@ opt = parse_args(opt_parser);
 genome <- opt$genome
 
 print(paste("genome =", opt$genome))
-print(paste("inPath =", opt$inPpath))
+print(paste("inPath =", opt$inPath))
 print(paste("outPathRobject =", opt$outPathRobject))
 print(paste("outPathRplots =", opt$outPathRplots))
 
@@ -109,7 +109,7 @@ if(genome == "hg19"){
   rep$repFamily[grep("L1MA", rep$repName)] <- "L1MA"
   rep$repGroup[rep$repFamily == "L1PB" | rep$repFamily == "L1PA" | rep$repFamily == "L1HS" | rep$repFamily == "L1MA"] <- "new_L1"
   
-}else if(genome == "mm9"){
+}else if(genome == "mm9" | genome == "mm10"){
   
   rep$repFamily[grep("PB", rep$repName)] = "PB"
   rep$repFamily[grep("B1_", rep$repName)] = "B1"
@@ -232,23 +232,23 @@ dev.off()
 # the chained and unchained stuff only makes sense with insertion numbers
 
 grouped <- filter(rep, repGroup == "new_SINE" | repGroup == "new_L1" | repGroup == "old_L1" | repGroup == "ancient")
-chainedGroup <- distinct(grouped,repID)
+chainedGroup <- distinct(grouped,repID,.keep_all = TRUE)
 
 groupedTab <- table(grouped$repGroup)[c("new_SINE", "new_L1", "old_L1", "ancient")]
 chainedGroupTab <- table(chainedGroup$repGroup)[c("new_SINE", "new_L1", "old_L1", "ancient")]
 
 pdf(file = paste(newDir,"/groupChained.pdf", sep = ""))
 par(mar = c(10,5,5,5))
-barplot(groupedTab, col = c("darkgreen", "purple", "red", "darkblue"), density = 40, space = c(.2,.2,.2,.2), ylim = c(0,1.8*10^6), 
+barplot(groupedTab, col = c("aquamarine3", "purple", "red", "darkblue"), density = 40, space = c(.2,.2,.2,.2), ylim = c(0,1.8*10^6), 
         ylab = "repeat masker hits", main = paste(genome, "retrotransposon groups"), las = 3)
-barplot(chainedGroupTab,col = c("darkgreen", "purple", "red", "darkblue"), width = .9,space = c(.28,.335,.335,.335),add = T, axes = FALSE, names = FALSE)
+barplot(chainedGroupTab,col = c("aquamarine3", "purple", "red", "darkblue"), width = .9,space = c(.28,.335,.335,.335),add = T, axes = FALSE, names = FALSE)
 legend("topright", legend = c("unchained", "chained"), density = c(40,-1), bty = "n")
 dev.off()
 
 familied <- filter(rep, !is.na(repFamily))
-chainedFamily <- distinct(familied,repID)
+chainedFamily <- distinct(familied,repID, .keep_all = TRUE)
 
-familyNames <- distinct(familied, repFamily, repGroup)[,c("repFamily", "repGroup")]
+familyNames <- distinct(familied, repFamily, repGroup, .keep_all = TRUE)[,c("repFamily", "repGroup")]
 familyNames$repGroup <- factor(familyNames$repGroup, levels = c("new_SINE", "new_L1", "old_L1", "ancient"))
 
 familiedTab <- table(familied$repFamily)[familyNames$repFamily[order(familyNames$repGroup)]]
@@ -258,13 +258,13 @@ pdf(file = paste(newDir,"/familyChained.pdf", sep = ""))
 par(mar = c(10,5,5,5))
 barplot(familiedTab, density = 40,  ylim = c(0,.8*10^6), las = 3,
         ylab = "repeat masker hits", main = paste(genome, "retrotransposon families"), 
-        col = c("darkgreen", "purple", "red", "darkblue")[as.integer(sort(familyNames$repGroup))],
+        col = c("aquamarine3", "purple", "red", "darkblue")[as.integer(sort(familyNames$repGroup))],
         width = 1)
 barplot(chainedFamilyTab, add = T, axes = FALSE, names = FALSE,
-        col = c("darkgreen", "purple", "red", "darkblue")[as.integer(sort(familyNames$repGroup))],
+        col = c("aquamarine3", "purple", "red", "darkblue")[as.integer(sort(familyNames$repGroup))],
         width = .9, space = c(.28,rep(.333, length(chainedFamilyTab) - 1)))
 legend("topright", legend = c("unchained", "chained"), density = c(40,-1), bty = "n")
-legend("top", legend = levels(familyNames$repGroup), fill  = c("darkgreen", "purple", "red", "darkblue"), bty = "n")
+legend("top", legend = levels(familyNames$repGroup), fill  = c("aquamarine3", "purple", "red", "darkblue"), bty = "n")
 dev.off()
 
 ## we could probably do our binning here too across different sizes
