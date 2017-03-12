@@ -9,10 +9,10 @@ sizes <- c(20000, 50000, 100000,250000,500000,750000,1000000,1500000,2000000)
 rGroups <- c("ancient", "new_SINE", "new_L1", "old_L1")
 
 
-genome = "rheMac3"
+genome = "mm10"
 
 mI <- NULL
-noX = TRUE
+noX = FALSE
 for(i in 1:length(sizes)){
   
   load(file = paste("~/Desktop/RTN_domains/R_objects/rmskMapTables/binSizes/", genome, "/repData_", genome, "_",as.integer(sizes[i]),"_size",".RData", sep = ""))
@@ -22,6 +22,8 @@ for(i in 1:length(sizes)){
     repDataList$bin <- repDataList$bin[-chrX,]
     repDataList$repSummary <- repDataList$repSummary[-chrX,]
     repDataList$neighborMat <- repDataList$neighborMat[[1]][-chrX, -chrX]
+  }else{
+    repDataList$neighborMat <- repDataList$neighborMat[[1]]
   }
   
   mat2 <- repDataList$neighborMat

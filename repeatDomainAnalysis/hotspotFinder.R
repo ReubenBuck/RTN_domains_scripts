@@ -28,14 +28,14 @@ sizes <- 50e3
 
 rGroups <- c("ancient", "new_SINE", "new_L1", "old_L1")
 
-genome = "canFam3"
+genome = "mm10"
 
 Gstar = TRUE
 
 sizesGstat <- NULL
 noX = FALSE
 
-load(file = paste("~/Desktop/RTN_domains/R_objects/rmskMapTables/binSizes/", genome, "/repData_", genome, "_",as.integer(sizes),".RData", sep = ""))
+load(file = paste("~/Desktop/RTN_domains/R_objects/rmskMapTables/binSizes/", genome, "/repData_", genome, "_",as.integer(sizes),"_size.RData", sep = ""))
 
 
 

@@ -21,7 +21,7 @@ Gstar = TRUE
 
 sizesGstat <- NULL
 mI <- NULL
-noX = TRUE
+noX = FALSE
 for(i in 1:length(sizes)){
   
   load(file = paste("~/Desktop/RTN_domains/R_objects/rmskMapTables/", genome, "/repData_", genome, "_",as.integer(sizes[i]),".RData", sep = ""))

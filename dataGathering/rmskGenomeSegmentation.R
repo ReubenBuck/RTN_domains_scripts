@@ -5,13 +5,13 @@ rm(list = ls())
 
 library(optparse)
 option_list = list(
-  make_option(c("-p", "--path"), type="character", default=NULL, 
+  make_option(c("-p", "--path"), type="character", default=NA, 
               help="path to genome", metavar="character"),
   make_option(c("-g", "--genome"), type="character", default=NA, 
               help="genome name", metavar="character"),
   make_option(c("-t", "--type"), type="character", default=NA, 
               help="distance from bin or size of bin, dist or size", metavar="character"),
-  make_option(c("-o", "--outPathRobject"), type="character", 
+  make_option(c("-o", "--outPathRobject"), type="character", default=NA,
               help="output path for processed repeats, default = current dir", metavar="character")
 ); 
 
@@ -22,20 +22,22 @@ if(!(opt$type == "size" | opt$type == "dist")){
   stop("must specify type of segmentation as size or dist")
 }
 
+
+
+if(is.na(genome)){stop("need to specify genome")}
+if(rev(strsplit(opt$path,split = "")[[1]])[1] != "/"){
+  opt$path = paste(opt$path,"/",sep = "")
+}
+if(rev(strsplit(opt$outPathRobject,split = "")[[1]])[1] != "/"){
+  opt$outPathRobject = paste(opt$outPathRobject,"/",sep = "")
+}
+
 genome <- opt$genome
 path <- opt$path
 outPath <- opt$outPathRobject
 print(opt$genome)
 print(opt$path)
 print(opt$outPathRobject)
-
-if(is.na(genome)){stop("need to specify genome")}
-if(rev(strsplit(opt$path,split = "")[[1]])[1] != "/"){
-  opt$inPath = paste(opt$inPath,"/",sep = "")
-}
-if(rev(strsplit(opt$outPathRobject,split = "")[[1]])[1] != "/"){
-  opt$outPathRobject = paste(opt$outPathRobject,"/",sep = "")
-}
 
 devtools::source_url("http://raw.githubusercontent.com/ReubenBuck/RTN_domains_scripts/master/rtnDomainFunctions.R")
 

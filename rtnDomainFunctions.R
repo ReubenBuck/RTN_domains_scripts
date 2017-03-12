@@ -3,6 +3,8 @@ binned.genome.reader <- function(genome, bin.size, keep.rate){
   
   # getting chrom info 
 
+  library(RMySQL)
+  
   my_db <- src_mysql(genome,
                      host = "genome-mysql.cse.ucsc.edu", 
                      user = "genomep", 
@@ -50,7 +52,7 @@ binned.genome.reader <- function(genome, bin.size, keep.rate){
                        ranges = IRanges(start = bins$start, end = bins$end - 1)
     )
     
-    gap.int.gr <- intersect(gaps.gr, bins.gr)	   
+    gap.int.gr <- GenomicRanges::intersect(gaps.gr, bins.gr)	   
     gap.bin.ol <- as.matrix(
       findOverlaps(bins.gr, gap.int.gr)
     )	   
