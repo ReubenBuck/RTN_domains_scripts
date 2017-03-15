@@ -81,39 +81,40 @@ for(ref in genomeRefNames){
   seqlevels(refSpecRaw.gr) <- chrInfo$chrom
   seqlengths(refSpecRaw.gr) <- chrInfo$size 
   
-  refSpecUnion.gr <- union(refSpecUnion.gr,reduce(refSpecRaw.gr))
+  refSpecUnion.gr <- GenomicRanges::union(refSpecUnion.gr,reduce(refSpecRaw.gr))
 }
 
 
-queFile = opt$queryBlocks
-queSpec <- read.table(file = queFile,
-                      col.names = c("refChr", "refLen", "refStart", "refEnd", "refStrand",
-                                    "refGap", "queChr", "queLen", "queStart", "queEnd", "queStrand",
-                                    "queGap", "chainID"),
-                      colClasses = c("character", "numeric", "numeric", "numeric", "character", "numeric",
-                                     "character", "numeric", "numeric", "numeric", "character", "numeric",
-                                     "numeric")
-)
+# queFile = opt$queryBlocks
+# queSpec <- read.table(file = queFile,
+#                       col.names = c("refChr", "refLen", "refStart", "refEnd", "refStrand",
+#                                     "refGap", "queChr", "queLen", "queStart", "queEnd", "queStrand",
+#                                     "queGap", "chainID"),
+#                       colClasses = c("character", "numeric", "numeric", "numeric", "character", "numeric",
+#                                      "character", "numeric", "numeric", "numeric", "character", "numeric",
+#                                      "numeric")
+# )
+# 
+# 
+# queSpecRaw.gr <- GRanges(seqnames = Rle(queSpec$refChr), 
+#                          ranges = IRanges(start = queSpec$refStart, end = queSpec$refEnd)
+#                          )
+# 
+# queSpecRaw.gr <- sortSeqlevels(queSpecRaw.gr)
+# queSpec <- queSpec[order(queSpecRaw.gr),]
+# queSpecRaw.gr <- sort(queSpecRaw.gr)
+# 
+# seqlevels(queSpecRaw.gr) <- chrInfo$chrom
+# seqlengths(queSpecRaw.gr) <- chrInfo$size 
+# 
+# # reduce the query blocks
+# queSpecRed.gr <- reduce(queSpecRaw.gr)
+# 
+# denom.gr <- intersect(queSpecRed.gr, refSpecUnion.gr)
 
+#denom.df <- as.data.frame(denom.gr)
 
-queSpecRaw.gr <- GRanges(seqnames = Rle(queSpec$refChr), 
-                         ranges = IRanges(start = queSpec$refStart, end = queSpec$refEnd)
-                         )
-
-queSpecRaw.gr <- sortSeqlevels(queSpecRaw.gr)
-queSpec <- queSpec[order(queSpecRaw.gr),]
-queSpecRaw.gr <- sort(queSpecRaw.gr)
-
-seqlevels(queSpecRaw.gr) <- chrInfo$chrom
-seqlengths(queSpecRaw.gr) <- chrInfo$size 
-
-# reduce the query blocks
-queSpecRed.gr <- reduce(queSpecRaw.gr)
-
-denom.gr <- intersect(queSpecRed.gr, refSpecUnion.gr)
-
-denom.df <- as.data.frame(denom.gr)
-
+denom.df <- as.data.frame(refSpecUnion.gr)
 
 write.table(denom.df, file = paste(opt$outDir,"/",opt$queryName,".base",sep = ""), quote = FALSE, sep = "\t", row.names = FALSE)
 

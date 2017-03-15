@@ -8,7 +8,7 @@ setwd(dir = "Desktop/RTN_domains/")
 
 repGroups = c("ancient", "new_SINE", "new_L1", "old_L1")
 repCols = c("darkblue", "aquamarine3", "purple", "red")
-snames <- c(s1name = "hg19", s2name = "mm9", s3name = "canFam3")
+snames <- c(s1name = "hg19", s2name = "mm10", s3name = "canFam3")
 
 genomeIntersect <- NULL
 
