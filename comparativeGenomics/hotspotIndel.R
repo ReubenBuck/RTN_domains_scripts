@@ -35,10 +35,10 @@ inter <- read.table("~/Desktop/RTN_domains/data/repeatHotspot/intersect.txt", he
 
 # differnces in TE content
 
-#hgGap <- read.table("~/Desktop/RTN_domains/data/comparativeGenomics/queGenomes/gaps/hg19.mm10.que.indel", header = TRUE)
-#hgGap.gr <- GRanges(hgGap)
-#mcols(hgGap.gr)$gapWidth <- mcols(hgGap.gr)$queRange.width
-#mcols(hgGap.gr[mcols(hgGap.gr)$inDel == "ins"])$gapWidth <- width(hgGap.gr[mcols(hgGap.gr)$inDel == "ins"])
+# hgGap <- read.table("~/Desktop/RTN_domains/data/comparativeGenomics/queGenomes/gaps/hg19.mm10.que.indel", header = TRUE)
+# hgGap.gr <- GRanges(hgGap)
+# mcols(hgGap.gr)$gapWidth <- mcols(hgGap.gr)$queRange.width
+# mcols(hgGap.gr[mcols(hgGap.gr)$inDel == "ins"])$gapWidth <- width(hgGap.gr[mcols(hgGap.gr)$inDel == "ins"])
 
 hgHot <- read.table("~/Desktop/RTN_domains/data/repeatHotspot/hg19/hg19_mm10_conDif.txt", header=TRUE)
 #hgHot <- hgHot[hgHot$hotspotID %in% inter$domains[inter$genome == "hg19"],]
@@ -178,14 +178,14 @@ s$conState <- factor(s$conState, levels = c("con","dif"))
 
 
 pdf(file = "~/Desktop/RTN_domains/plots/inDelIdentify/HG19indelRates.pdf", width = 12, height = 8, onefile = TRUE)
-par(mar = c(10,4,4,4))
-stripchart(log10(s$gapWidth/s$baseRate) ~ + s$repGroup + s$indel + s$genome.1,
+par(mar = c(10,5,4,4))
+stripchart((s$gapWidth/s$baseRate) ~ + s$repGroup + s$indel + s$genome.1,
            method= "jitter",jitter = .3, pch = 16, cex = .3, vert = TRUE, 
            las = 2, main = "hg19 all repeat enriched regions", xaxs = "i",
-           col = c("darkblue", "purple", "aquamarine3", "red"))
-boxplot(log10(s$gapWidth/s$baseRate) ~   s$repGroup  + s$indel + s$genome.1,
+           col = c("darkblue", "purple", "aquamarine3", "red"), log = "y")
+boxplot((s$gapWidth/s$baseRate) ~   s$repGroup  + s$indel + s$genome.1,
         las = 2, main = "", xaxs = "i", outline = FALSE, add = TRUE, col = NA, 
-        border = c("darkblue", "purple", "aquamarine3", "red"))
+        border = c("darkblue", "purple", "aquamarine3", "red"), log = "y")
 for(i in 0:16){abline(v = (i)+ .5, lty = 2, lwd = 1)};for(i in 0:4){abline(v = (i * 4) + .5, lty = 1, lwd = 2)};abline(v = 8.5, lty = 1, lwd = 3, col= 2)
 
 
@@ -296,11 +296,11 @@ s$conState <- factor(s$conState, levels = c("con","dif"))
 pdf(file = "~/Desktop/RTN_domains/plots/inDelIdentify/MM10indelRate.pdf", width = 12, height = 8, onefile = TRUE)
 par(mar = c(10,4,4,4))
 
-stripchart(log10(s$gapWidth/s$baseRate) ~ s$repGroup + s$indel + s$genome.1,
+stripchart((s$gapWidth/s$baseRate) ~ s$repGroup + s$indel + s$genome.1,
            method= "jitter",jitter = .3, pch = 16, cex = .3, vert = TRUE, 
            las = 2, main = "mm10 all repeat enriched regions", xaxs = "i",
-           col = c("darkblue", "purple", "aquamarine3", "red"))
-boxplot(log10(s$gapWidth/s$baseRate) ~   s$repGroup  + s$indel + s$genome.1,
+           col = c("darkblue", "purple", "aquamarine3", "red"), ylim = c(0,.1))
+boxplot((s$gapWidth/s$baseRate) ~   s$repGroup  + s$indel + s$genome.1,
         las = 2, main = "", xaxs = "i", outline = FALSE, add = TRUE, col = NA,
         border = c("darkblue", "purple", "aquamarine3", "red"))
 for(i in 0:16){abline(v = (i)+ .5, lty = 2, lwd = 1)};for(i in 0:4){abline(v = (i * 4) + .5, lty = 1, lwd = 2)};abline(v = 8.5, lty = 1, lwd = 3, col= 2)
