@@ -234,3 +234,46 @@ write.table(x = s2_s1_insertionRate, file = paste("data/repeatHotspot/",s2name ,
 
 
 
+
+
+dat$conState <- droplevels(dat$conState)
+
+head(dat)
+
+# in its current form the script only takes the insertion rate
+# of the elements associated with the repeat type
+# we should get the insertion rate of all the elements for each 
+
+dat <- filter(s2_s1_insertionRate, repGroup == "new_L1" & (conState == "con" | conState == "dif"))
+layout(1:8)
+par(mar = c(1,5,1,2))
+
+barplot(dat$new_L1[dat$genome == "ref"][order(dat$new_L1[dat$genome == "que"])], col = "purple")
+barplot(dat$new_L1[dat$genome == "que"][order(dat$new_L1[dat$genome == "que"])], col = "purple")
+
+barplot(dat$ancient[dat$genome == "ref"][order(dat$new_L1[dat$genome == "que"])], col = "darkblue")
+barplot(dat$ancient[dat$genome == "que"][order(dat$new_L1[dat$genome == "que"])], col = "darkblue")
+
+barplot(dat$new_SINE[dat$genome == "ref"][order(dat$new_L1[dat$genome == "que"])], col = "aquamarine3")
+barplot(dat$new_SINE[dat$genome == "que"][order(dat$new_L1[dat$genome == "que"])], col = "aquamarine3")
+
+barplot(dat$old_L1[dat$genome == "ref"][order(dat$new_L1[dat$genome == "que"])], col = "red")
+barplot(dat$old_L1[dat$genome == "que"][order(dat$new_L1[dat$genome == "que"])], col = "red")
+
+
+layout(1:8)
+par(mar = c(1,5,1,2))
+barplot(dat$new_L1[dat$genome == "ref"], col = "purple")
+barplot(dat$new_L1[dat$genome == "que"], col = "purple")
+
+barplot(dat$ancient[dat$genome == "ref"], col = "darkblue")
+barplot(dat$ancient[dat$genome == "que"], col = "darkblue")
+
+barplot(dat$new_SINE[dat$genome == "ref"], col = "aquamarine3")
+barplot(dat$new_SINE[dat$genome == "que"], col = "aquamarine3")
+
+barplot(dat$old_L1[dat$genome == "ref"], col = "red")
+barplot(dat$old_L1[dat$genome == "que"], col = "red")
+
+
+
