@@ -20,10 +20,10 @@ library("optparse")
 option_list = list(
   make_option(c("-d", "--inputDir"), type="character", default=NA, 
               help="directory containing only ref directories", metavar="character"),
-  make_option(c("-q", "--queryBlocks"), type="character", default=NA, 
-              help="alignment blocks between query and reference genomes", metavar="character"),
   make_option(c("-n", "--queryName"), type="character", default=NA, 
               help="name of query genome", metavar="character"),
+  make_option(c("-r", "--QueryAsRef"), type="character", default=NA, 
+              help="specify 'TRUE' if query is in ref position", metavar="character"),
   make_option(c("-o", "--outDir"), type="character", default="./", 
               help="out directory", metavar="character")
 ) 
@@ -70,9 +70,18 @@ for(ref in genomeRefNames){
   # lets do the switch here
   refSpec[refSpec$queStrand == "-",c("queEnd", "queStart")] <- refSpec[refSpec$queStrand == "-", "queLen"] - refSpec[refSpec$queStrand == "-",c("queStart", "queEnd")]
   
-  refSpecRaw.gr <- GRanges(seqnames = Rle(refSpec$queChr), 
+  if(opt$QueryAsRef){
+    refSpecRaw.gr <- GRanges(seqnames = Rle(refSpec$refChr), 
+                             ranges = IRanges(start = refSpec$refStart, end = refSpec$refEnd)
+    )
+  }else if(!opt$QueryAsRef){
+    refSpecRaw.gr <- GRanges(seqnames = Rle(refSpec$queChr), 
                            ranges = IRanges(start = refSpec$queStart, end = refSpec$queEnd)
-  )
+    )
+  }else{
+    stop("specify if query is in ref position")
+  }
+  
   
   refSpecRaw.gr <- sortSeqlevels(refSpecRaw.gr)
   refSpec <- refSpec[order(refSpecRaw.gr),]
@@ -85,34 +94,7 @@ for(ref in genomeRefNames){
 }
 
 
-# queFile = opt$queryBlocks
-# queSpec <- read.table(file = queFile,
-#                       col.names = c("refChr", "refLen", "refStart", "refEnd", "refStrand",
-#                                     "refGap", "queChr", "queLen", "queStart", "queEnd", "queStrand",
-#                                     "queGap", "chainID"),
-#                       colClasses = c("character", "numeric", "numeric", "numeric", "character", "numeric",
-#                                      "character", "numeric", "numeric", "numeric", "character", "numeric",
-#                                      "numeric")
-# )
-# 
-# 
-# queSpecRaw.gr <- GRanges(seqnames = Rle(queSpec$refChr), 
-#                          ranges = IRanges(start = queSpec$refStart, end = queSpec$refEnd)
-#                          )
-# 
-# queSpecRaw.gr <- sortSeqlevels(queSpecRaw.gr)
-# queSpec <- queSpec[order(queSpecRaw.gr),]
-# queSpecRaw.gr <- sort(queSpecRaw.gr)
-# 
-# seqlevels(queSpecRaw.gr) <- chrInfo$chrom
-# seqlengths(queSpecRaw.gr) <- chrInfo$size 
-# 
-# # reduce the query blocks
-# queSpecRed.gr <- reduce(queSpecRaw.gr)
-# 
-# denom.gr <- intersect(queSpecRed.gr, refSpecUnion.gr)
 
-#denom.df <- as.data.frame(denom.gr)
 
 denom.df <- as.data.frame(refSpecUnion.gr)
 
