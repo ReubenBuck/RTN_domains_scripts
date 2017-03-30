@@ -57,7 +57,7 @@ genomeRefNames <- list.files(opt$inputDir)
 proper=function(s) sub("(.)", ("\\U\\1"), tolower(s), pe=TRUE)
 refSpecUnion.gr <- GRanges()
 for(ref in genomeRefNames){
-  fileName <- paste(opt$inputDir,"/", ref, "/", ref, "To", proper(opt$queryName), ".brokenChain", sep = "")
+  fileName <- paste(opt$inputDir,"/",ref, sep = "")
   refSpec <- read.table(file = fileName,
                         col.names = c("refChr", "refLen", "refStart", "refEnd", "refStrand",
                                       "refGap", "queChr", "queLen", "queStart", "queEnd", "queStrand",
