@@ -65,6 +65,31 @@ func main() {
 		switch words[0] {
 		case "net":
 
+			//flush the stack before starting the next chr
+			for i := len(fillStartStack) - 1; i > -1; i-- {
+
+				// send fill info to print
+				fillPrint.RefStart = fillStartStack[len(fillStartStack)-1]
+				fillPrint.RefEnd = fillEndStack[len(fillEndStack)-1]
+				fillPrint.RefChr = netElem.Chr
+				fillPrint.QueChr = chrStack[len(chrStack)-1]
+				fillPrint.Strand = strandStack[len(strandStack)-1]
+				fillPrint.QueStart = quePosStack[len(quePosStack)-1]
+				fillPrint.QueEnd = queEndStack[len(queEndStack)-1]
+
+				//	if fillPrint.RefEnd-fillPrint.RefStart > 8 {
+				fmt.Println(strings.Trim(fmt.Sprintf("%v", fillPrint), "{}"))
+				//	}
+
+				// remove from stack
+				fillStartStack = fillStartStack[0 : len(fillStartStack)-1]
+				fillEndStack = fillEndStack[0 : len(fillEndStack)-1]
+				chrStack = chrStack[0 : len(chrStack)-1]
+				quePosStack = quePosStack[0 : len(quePosStack)-1]
+				queEndStack = queEndStack[0 : len(queEndStack)-1]
+				strandStack = strandStack[0 : len(strandStack)-1]
+
+			}
 			netElem.Chr = words[1]
 			netElem.Len, err = strconv.Atoi(words[2])
 
@@ -199,11 +224,6 @@ func main() {
 	}
 
 	for i := len(fillStartStack) - 1; i > -1; i-- {
-		// if fillEndStack[i]-fillStartStack[i] < 10 {
-		// 	fillStartStack = fillStartStack[0 : len(fillStartStack)-1]
-		// 	fillEndStack = fillEndStack[0 : len(fillEndStack)-1]
-
-		//	} else
 
 		// send fill info to print
 		fillPrint.RefStart = fillStartStack[len(fillStartStack)-1]

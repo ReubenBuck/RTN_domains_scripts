@@ -66,6 +66,32 @@ func main() {
 		switch words[0] {
 		case "net":
 
+			// flush the stack
+			for i := len(gapStartStack) - 1; i > -1; i-- {
+
+				// send gap info to print
+				gapPrint.RefStart = gapStartStack[len(gapStartStack)-1]
+				gapPrint.RefEnd = gapEndStack[len(gapEndStack)-1]
+				gapPrint.RefChr = netElem.Chr
+				gapPrint.QueChr = chrStack[len(chrStack)-1]
+				gapPrint.Strand = strandStack[len(strandStack)-1]
+				gapPrint.QueStart = quePosStack[len(quePosStack)-1]
+				gapPrint.QueEnd = queEndStack[len(queEndStack)-1]
+
+				if gapPrint.RefEnd-gapPrint.RefStart > 8 {
+					fmt.Println(strings.Trim(fmt.Sprintf("%v", gapPrint), "{}"))
+				}
+
+				// remove from stack
+				gapStartStack = gapStartStack[0 : len(gapStartStack)-1]
+				gapEndStack = gapEndStack[0 : len(gapEndStack)-1]
+				chrStack = chrStack[0 : len(chrStack)-1]
+				quePosStack = quePosStack[0 : len(quePosStack)-1]
+				queEndStack = queEndStack[0 : len(queEndStack)-1]
+				strandStack = strandStack[0 : len(strandStack)-1]
+
+			}
+
 			netElem.Chr = words[1]
 			netElem.Len, err = strconv.Atoi(words[2])
 
@@ -198,11 +224,6 @@ func main() {
 	}
 
 	for i := len(gapStartStack) - 1; i > -1; i-- {
-		// if gapEndStack[i]-gapStartStack[i] < 10 {
-		// 	gapStartStack = gapStartStack[0 : len(gapStartStack)-1]
-		// 	gapEndStack = gapEndStack[0 : len(gapEndStack)-1]
-
-		//	} else
 
 		// send gap info to print
 		gapPrint.RefStart = gapStartStack[len(gapStartStack)-1]
