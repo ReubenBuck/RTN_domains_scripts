@@ -23,12 +23,12 @@ if(any(is.na(opt))){
   stop("argument missing")
 }
 
-
-opt$query = "~/Desktop/RTN_domains/data/comparativeGenomics/queGenomes/brokenChains/hg19/hg19ToMm10.brokenChain"
+#.all.chain.broken
+opt$query = "~/Desktop/RTN_domains/data/comparativeGenomics/queGenomes/brokenChains/hg19/hg19.mm10.all.chain.broken"
 
 opt$queryName = "hg19"
 
-opt$baseRate = "~/Desktop/RTN_domains/data/comparativeGenomics/queGenomes/baseRates/hg19.base"
+opt$baseRate = "~/Desktop/RTN_domains/data/comparativeGenomics/queGenomes/baseRateAllChain/hg19.base"
 
 
 
@@ -77,11 +77,6 @@ seqlengths(gaps.gr) <- chrInfo$size + 1
 
 
 
-
-
-
-
-
 u.gr <- union(baseRate.gr, queSpec.gr)
 
 sum(width(u.gr))
@@ -100,11 +95,6 @@ sum(width(loss.gr))
 
 
 
-
-
-
-
-
 gBR.gr <- gaps(reduce(baseRate.gr))
 gBR.gr <- gBR.gr[strand(gBR.gr) == "*"]
 sum(width(gBR.gr))
@@ -116,80 +106,47 @@ hist(log10(width(reduce(gQue.gr))), breaks = 100)
 
 
 gain.gr <- intersect(gQue.gr, gBR.gr)
+gain.gr <- setdiff(gain.gr, gaps.gr)
 
 
 sum(as.numeric(width(gain.gr)))
-sum(width(setdiff(gain.gr, gaps.gr)))
+sum(width(gain.gr))
 
 
 
-hist(log10(width(setdiff(gain.gr, gaps.gr))), breaks = 500)
+gainHist <- hist((width(setdiff(gain.gr, gaps.gr))), breaks = seq(0,502000), xlim = c(0,1000), ylim = c(0,10000))
 
 
-hist(log10(width(loss.gr)), breaks = 200)
+lossHist <- hist((width(loss.gr)), breaks = seq(0,502000), xlim = c(0,1000), ylim = c(0,10000))
 
 
+plot(gainHist$mids, gainHist$counts, type = "l", xlim = c(0,1000), ylim = c(0,10000) )
+lines(lossHist$mids, lossHist$counts, type = "l", xlim = c(0,1000), ylim = c(0,10000) , col = 2)
+
+
+plot(gainHist$mids, gainHist$counts * gainHist$mids, type = "l", xlim = c(0,1000), ylim = c(0,1000000) )
+lines(lossHist$mids, lossHist$counts * lossHist$mids, type = "l", xlim = c(0,1000), ylim = c(0,1000000) , col = 2)
+
+
+
+
+
+# human deleted regions
+# where they are located in mouse
+
+# we can look at the gaps 
 
 # need to get rid of unplaced chromosomes
 
-# also remove Ns
-mychannel <- dbConnect(MySQL(), user="genome", host="genome-mysql.cse.ucsc.edu", db = opt$queryName)
-gaps <- dbGetQuery(mychannel, "SELECT * FROM gap;")
-gaps <- gaps[-(grep(pattern = "_", x = gaps$chrom)),]
-gaps.gr <- GRanges(seqnames = Rle(gaps$chrom), 
-                   ranges = IRanges(start = gaps$chromStart + 1, end = gaps$chromEnd + 1))
-seqlevels(gaps.gr) <- chrInfo$chrom
-seqlengths(gaps.gr) <- chrInfo$size + 1
-
-
-sum(width(setdiff(gain.gr, gaps.gr)))
 
 
 
-# figured out genome size
+# that data is already available
 
-# with the increase in size
-# the insertion rate, there is likly to be a high amount of false positives and in the deletion side of things there is more likly to be false negatives
+sum(width(gain.gr))
+sum(width(loss.gr))
 
-
-# however now we can sample a much larger range of species to get the ancestral DNA content
-
-
-
-
-
-### run a test to see if as much mouse can be found in human as human can be found in mouse
-
-
-hm <- read.table(file = "~/Desktop/RTN_domains/data/comparativeGenomics/queGenomes/brokenChains/hg19/hg19ToMm10.brokenChain",
-              col.names = c("refChr", "refLen", "refStart", "refEnd", "refStrand",
-                            "refGap", "queChr", "queLen", "queStart", "queEnd", "queStrand",
-                            "queGap", "chainID"),
-              colClasses = c("character", "numeric", "numeric", "numeric", "character", "numeric",
-                             "character", "numeric", "numeric", "numeric", "character", "numeric",
-                             "numeric")
-)
-
-
-mh <- read.table(file = "~/Desktop/RTN_domains/data/comparativeGenomics/queGenomes/brokenChains/mm10/mm10ToHg19.brokenChain",
-                 col.names = c("refChr", "refLen", "refStart", "refEnd", "refStrand",
-                               "refGap", "queChr", "queLen", "queStart", "queEnd", "queStrand",
-                               "queGap", "chainID"),
-                 colClasses = c("character", "numeric", "numeric", "numeric", "character", "numeric",
-                                "character", "numeric", "numeric", "numeric", "character", "numeric",
-                                "numeric")
-)
-
-
-hmH.gr <- reduce(GRanges(seqnames = Rle(hm$refChr), 
-                 ranges = IRanges(start = hm$refStart, end = hm$refEnd)))
-hmM.gr <- reduce(GRanges(seqnames = Rle(hm$queChr), 
-                  ranges = IRanges(start = hm$queStart, end = hm$queEnd)))
-
-mhM.gr <- reduce(GRanges(seqnames = Rle(mh$refChr), 
-                         ranges = IRanges(start = mh$refStart, end = mh$refEnd)))
-mhH.gr <- reduce(GRanges(seqnames = Rle(mh$queChr), 
-                         ranges = IRanges(start = mh$queStart, end = mh$queEnd)))
+# gain overlap with repeats 
 
 
 
@@ -197,24 +154,109 @@ mhH.gr <- reduce(GRanges(seqnames = Rle(mh$queChr),
 
 
 
+bins <- GRanges(seqnames = chrInfo$chrom, 
+                ranges = IRanges(start = 1, end = chrInfo$size + 1))
 
-# getting the direction right would improve both estimates
-# the improvements in mouse would be better than human
-# however, will they be enough to get confident deletion rates in human and insertion rates in mouse
+bins.gr <- slidingWindows(bins, width = 10000, step = 10000)
 
-
-sum(width(mhM.gr)) - sum(width(hmM.gr))
-sum(width(hmH.gr)) - sum(width(mhH.gr))
-
-
-sum(width(hmH.gr)) - sum(width(mhM.gr))
-(sum(width(mhM.gr)) - sum(width(hmM.gr))) - (sum(width(hmH.gr)) - sum(width(mhH.gr)))
+bins.gr
+bins.gr <- unlist(bins.gr)
+bins.gr <- sort(sortSeqlevels(bins.gr))
 
 
-# we are failing to capture the ancestral mouse DNA 
-# why
+ol <- findOverlaps(loss.gr, bins.gr)
+pInt <- pintersect(bins.gr[subjectHits(ol)], loss.gr[queryHits(ol)])
+
+agg <- aggregate(width(pInt), by = list(subjectHits(ol)), FUN = sum)
+plot(agg$x[1:200], type = "l")
+
+mcols(bins.gr)$delBases = 0
+mcols(bins.gr)$delBases[agg$Group.1] = agg$x
+
+mcols(bins.gr)
+hist((mcols(bins.gr)$delBases), breaks = 100)
 
 
 
+ol <- findOverlaps(gain.gr, bins.gr)
+pInt <- pintersect(bins.gr[subjectHits(ol)], gain.gr[queryHits(ol)])
+
+agg <- aggregate(width(pInt), by = list(subjectHits(ol)), FUN = sum)
+plot(agg$x[1:200], type = "l")
+
+mcols(bins.gr)$insBases = 0
+mcols(bins.gr)$insBases[agg$Group.1] = agg$x
+
+mcols(bins.gr)
+hist( mcols(bins.gr)$delBases, breaks = 100)
+hist((mcols(bins.gr)$insBases), breaks = 100, add = TRUE, col = 2, density = 0)
+
+
+smoothScatter(mcols(bins.gr)$delBases, mcols(bins.gr)$insBases)
+
+
+
+cols <- as.integer(seqnames(bins.gr))%%2
+
+pdf(file = paste("~/Desktop/indelGenome",opt$queryName,".pdf", sep = ""), height = 6,width = 12)
+layout(matrix(c(1:2),nrow = 2))
+par(mar = c(3,6,0,0), oma = c(3,0,5,3))
+
+plot(mcols(bins.gr)$insBases, type = "p", pch = 19, cex = .2, col = c(1,8)[cols + 1], ylim = c(0,1e5),
+     ylab = "insertion (bp)", xaxt = "n")
+#lines(smooth.spline(mcols(bins.gr)$insBases), col = 4)
+
+axis(side = 1, labels = substring(unique(seqnames(bins.gr)), first = 4), 
+     at = cumsum(table(seqnames(bins.gr))) - (table(seqnames(bins.gr))/2))
+
+mtext(side = 3, text = opt$queryName, cex = 1.5, line = 2)
+
+plot((mcols(bins.gr)$delBases), type = "p", pch = 19, cex = .2, col= c(1,8)[cols + 1], ylim = c(0,1e5),
+     ylab = "deletion (bp)", xaxt = "n")
+#lines(smooth.spline(mcols(bins.gr)$delBases), col = 2)
+
+axis(side = 1, labels = substring(unique(seqnames(bins.gr)), first = 4), 
+     at = cumsum(table(seqnames(bins.gr))) - (table(seqnames(bins.gr))/2))
+
+mtext(side = 1, text = "Chromosome", cex = 1.2, line = 3)
+
+
+dev.off()
+
+
+layout(1)
+
+hist(mcols(bins.gr)$insBases, breaks = 100)
+hist(mcols(bins.gr)$delBases, breaks = 100, col = 2, density = 0, add = T)
+
+
+# what are the important things to know 
+# why do we want to calculate regional variation?
+
+
+plot(mcols(bins.gr[seqnames(bins.gr) == "chr1"])$insBases, type = "p", pch = 19, cex = .2, col = c(1,8)[cols + 1], ylim = c(0,1e5),
+     ylab = "insertion (bp)", xaxt = "n")
+lines(smooth.spline(mcols(bins.gr[seqnames(bins.gr) == "chr1"])$insBases), col = 4)
+
+
+plot(mcols(bins.gr[seqnames(bins.gr) == "chr1"])$delBases, type = "p", pch = 19, cex = .2, col = c(1,8)[cols + 1], ylim = c(0,1e5),
+     ylab = "insertion (bp)", xaxt = "n")
+lines(smooth.spline(mcols(bins.gr[seqnames(bins.gr) == "chr1"])$delBases), col = 2)
+
+
+# proportion of insertions that overlap repeats
+# maybe we could use a HMM to define the states
+# HMM we can feed states and get a model and know where to draw the line
+# We can use bin size and liklihood initially
+# there is also the option of cross validation, however we may not have enough data
+
+# At this poitn it is probably worth saving our results and doing humanisation.
+# 
+
+
+A <- as.data.frame(bins.gr)
+
+
+head(A)
 
 
