@@ -20,6 +20,7 @@ type fill struct {
 	QueStart int
 	QueEnd   int
 	Strand   string
+	id       int
 	//Type     string
 }
 
@@ -27,6 +28,8 @@ type gap struct {
 	RefChr   string
 	RefStart int
 	RefEnd   int
+	QueStart int
+	QueEnd   int
 }
 
 type net struct {
@@ -46,6 +49,7 @@ func main() {
 	var queEndStack []int
 	var strandStack []string
 	var fillPrint fill
+	var chainStack []int
 
 	fillFile, err := os.Open(os.Args[1])
 	if err != nil {
@@ -76,6 +80,7 @@ func main() {
 				fillPrint.Strand = strandStack[len(strandStack)-1]
 				fillPrint.QueStart = quePosStack[len(quePosStack)-1]
 				fillPrint.QueEnd = queEndStack[len(queEndStack)-1]
+				fillPrint.id = chainStack[len(chainStack)-1]
 
 				//	if fillPrint.RefEnd-fillPrint.RefStart > 8 {
 				fmt.Println(strings.Trim(fmt.Sprintf("%v", fillPrint), "{}"))
@@ -88,6 +93,7 @@ func main() {
 				quePosStack = quePosStack[0 : len(quePosStack)-1]
 				queEndStack = queEndStack[0 : len(queEndStack)-1]
 				strandStack = strandStack[0 : len(strandStack)-1]
+				chainStack = chainStack[0 : len(chainStack)-1]
 
 			}
 			netElem.Chr = words[1]
@@ -121,6 +127,7 @@ func main() {
 						fillPrint.Strand = strandStack[len(strandStack)-1]
 						fillPrint.QueStart = quePosStack[len(quePosStack)-1]
 						fillPrint.QueEnd = queEndStack[len(queEndStack)-1]
+						fillPrint.id = chainStack[len(chainStack)-1]
 
 						//	if fillPrint.RefEnd-fillPrint.RefStart > 8 {
 						fmt.Println(strings.Trim(fmt.Sprintf("%v", fillPrint), "{}"))
@@ -133,6 +140,7 @@ func main() {
 						quePosStack = quePosStack[0 : len(quePosStack)-1]
 						queEndStack = queEndStack[0 : len(queEndStack)-1]
 						strandStack = strandStack[0 : len(strandStack)-1]
+						chainStack = chainStack[0 : len(chainStack)-1]
 					}
 				}
 			}
@@ -146,6 +154,7 @@ func main() {
 				fillPrint.Strand = strandStack[len(strandStack)-1]
 				fillPrint.QueStart = quePosStack[len(quePosStack)-1]
 				fillPrint.QueEnd = queEndStack[len(queEndStack)-1]
+				fillPrint.id = chainStack[len(chainStack)-1]
 
 				//	if fillPrint.RefEnd-fillPrint.RefStart > 8 {
 				fmt.Println(strings.Trim(fmt.Sprintf("%v", fillPrint), "{}"))
@@ -173,6 +182,7 @@ func main() {
 			newFill.QueStart = newFill.QueStart + 1
 			refLen, err = strconv.Atoi(words[6])
 			newFill.QueEnd = newFill.QueStart + refLen - 1
+			newFill.id, err = strconv.Atoi(words[8])
 
 			//fmt.Println(newFill, "newGAP")
 
@@ -191,6 +201,7 @@ func main() {
 						fillPrint.Strand = strandStack[len(strandStack)-1]
 						fillPrint.QueStart = quePosStack[len(quePosStack)-1]
 						fillPrint.QueEnd = queEndStack[len(queEndStack)-1]
+						fillPrint.id = chainStack[len(chainStack)-1]
 
 						//				if fillPrint.RefEnd-fillPrint.RefStart > 8 {
 						fmt.Println(strings.Trim(fmt.Sprintf("%v", fillPrint), "{}"))
@@ -203,6 +214,7 @@ func main() {
 						quePosStack = quePosStack[0 : len(quePosStack)-1]
 						queEndStack = queEndStack[0 : len(queEndStack)-1]
 						strandStack = strandStack[0 : len(strandStack)-1]
+						chainStack = chainStack[0 : len(chainStack)-1]
 					}
 				}
 			}
@@ -210,10 +222,14 @@ func main() {
 			// add to stack
 			fillStartStack = append(fillStartStack, newFill.RefStart)
 			fillEndStack = append(fillEndStack, newFill.RefEnd)
+			// we could add query start and end to these stacks too maybe?
+			// the start can be ref and query, if they both update the same way
+
 			chrStack = append(chrStack, newFill.QueChr)
 			quePosStack = append(quePosStack, newFill.QueStart)
 			queEndStack = append(queEndStack, newFill.QueEnd)
 			strandStack = append(strandStack, newFill.Strand)
+			chainStack = append(chainStack, newFill.id)
 
 		}
 		if err != nil {
@@ -233,6 +249,7 @@ func main() {
 		fillPrint.Strand = strandStack[len(strandStack)-1]
 		fillPrint.QueStart = quePosStack[len(quePosStack)-1]
 		fillPrint.QueEnd = queEndStack[len(queEndStack)-1]
+		fillPrint.id = chainStack[len(chainStack)-1]
 
 		//	if fillPrint.RefEnd-fillPrint.RefStart > 8 {
 		fmt.Println(strings.Trim(fmt.Sprintf("%v", fillPrint), "{}"))
@@ -245,6 +262,7 @@ func main() {
 		quePosStack = quePosStack[0 : len(quePosStack)-1]
 		queEndStack = queEndStack[0 : len(queEndStack)-1]
 		strandStack = strandStack[0 : len(strandStack)-1]
+		chainStack = chainStack[0 : len(chainStack)-1]
 
 	}
 

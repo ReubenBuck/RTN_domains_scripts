@@ -30,6 +30,11 @@ type fill struct {
 	RefEnd   int
 }
 
+type chainID struct {
+	id  int
+	end int
+}
+
 type net struct {
 	Chr string
 	Len int
@@ -47,6 +52,8 @@ func main() {
 	var queEndStack []int
 	var strandStack []string
 	var gapPrint gap
+	var chainInfo chainID
+	var chainStack []chainID
 
 	gapFile, err := os.Open(os.Args[1])
 	if err != nil {
@@ -79,7 +86,10 @@ func main() {
 				gapPrint.QueEnd = queEndStack[len(queEndStack)-1]
 
 				if gapPrint.RefEnd-gapPrint.RefStart > 8 {
-					fmt.Println(strings.Trim(fmt.Sprintf("%v", gapPrint), "{}"))
+					fmt.Println(strings.Trim(fmt.Sprintf("%v", gapPrint), "{}"), chainStack[len(chainStack)-1].id)
+				}
+				if gapStartStack[len(gapStartStack)-1] > chainStack[len(chainStack)-1].end {
+					chainStack = chainStack[0 : len(chainStack)-1]
 				}
 
 				// remove from stack
@@ -90,12 +100,21 @@ func main() {
 				queEndStack = queEndStack[0 : len(queEndStack)-1]
 				strandStack = strandStack[0 : len(strandStack)-1]
 
+				// keeping chain stack in sync
+
 			}
+
+			// clean chain stack here
+			chainStack = nil
 
 			netElem.Chr = words[1]
 			netElem.Len, err = strconv.Atoi(words[2])
 
 		case "fill":
+
+			// if len(gapStartStack) > 0 && gapStartStack[len(gapStartStack)-1] > chainStack[len(chainStack)-1].end {
+			// 	chainStack = chainStack[0 : len(chainStack)-1]
+			// }
 
 			// get information for next fill
 
@@ -104,10 +123,8 @@ func main() {
 			refLen, err = strconv.Atoi(words[2])
 			newFill.RefEnd = newFill.RefStart + refLen - 1
 
-			//fmt.Println(newFill, "newFILL")
-
-			// if the fill is totaly left of our stack, we should print it
-			// after that we find we have the gap thats interupted
+			// if the fill is totally left of our stack, we should print it
+			// after that we find we have the gap thats interrupted
 
 			if len(gapStartStack) > 0 && len(gapEndStack) > 0 {
 				for i := len(gapStartStack) - 1; i > -1; i-- {
@@ -122,8 +139,12 @@ func main() {
 						gapPrint.QueStart = quePosStack[len(quePosStack)-1]
 						gapPrint.QueEnd = queEndStack[len(queEndStack)-1]
 
+						if gapPrint.RefStart > chainStack[len(chainStack)-1].end {
+							chainStack = chainStack[0 : len(chainStack)-1]
+						}
+
 						if gapPrint.RefEnd-gapPrint.RefStart > 8 {
-							fmt.Println(strings.Trim(fmt.Sprintf("%v", gapPrint), "{}"))
+							fmt.Println(strings.Trim(fmt.Sprintf("%v", gapPrint), "{}"), chainStack[len(chainStack)-1].id)
 						}
 
 						// remove from stack
@@ -133,6 +154,9 @@ func main() {
 						quePosStack = quePosStack[0 : len(quePosStack)-1]
 						queEndStack = queEndStack[0 : len(queEndStack)-1]
 						strandStack = strandStack[0 : len(strandStack)-1]
+					}
+					if newFill.RefStart > chainStack[len(chainStack)-1].end {
+						chainStack = chainStack[0 : len(chainStack)-1]
 					}
 				}
 			}
@@ -148,12 +172,22 @@ func main() {
 				gapPrint.QueEnd = queEndStack[len(queEndStack)-1]
 
 				if gapPrint.RefEnd-gapPrint.RefStart > 8 {
-					fmt.Println(strings.Trim(fmt.Sprintf("%v", gapPrint), "{}"))
+					fmt.Println(strings.Trim(fmt.Sprintf("%v", gapPrint), "{}"), chainStack[len(chainStack)-1].id)
 				}
 
 				gapStartStack = gapStartStack[0 : len(gapStartStack)-1]
 				gapStartStack = append(gapStartStack, newFill.RefEnd+1)
 			}
+
+			// add all the chain info after considering our fills
+			if len(chainStack) > 0 && newFill.RefStart > chainStack[len(chainStack)-1].end {
+				chainStack = chainStack[0 : len(chainStack)-1]
+			}
+
+			chainInfo.id, err = strconv.Atoi(words[8])
+			chainInfo.end = newFill.RefEnd
+
+			chainStack = append(chainStack, chainInfo)
 
 			//now we need to think what a fill interruption looks like
 			// mape our fill interuptions need to work recursivly
@@ -174,13 +208,13 @@ func main() {
 			refLen, err = strconv.Atoi(words[6])
 			newGap.QueEnd = newGap.QueStart + refLen - 1
 
-			//fmt.Println(newGap, "newGAP")
-
 			// here we enter gap this means we got to the end of our last gap non interrupted
 			// here we need to think about our position a bit more
 			// If we can get to a start point that is beyond our end point we need to print
+			// chances we have to remove chain information here too
 			if len(gapStartStack) > 0 && len(gapEndStack) > 0 {
 				for i := len(gapStartStack) - 1; i > -1; i-- {
+
 					if gapEndStack[i] < newGap.RefStart {
 
 						// send gap info to print
@@ -192,8 +226,12 @@ func main() {
 						gapPrint.QueStart = quePosStack[len(quePosStack)-1]
 						gapPrint.QueEnd = queEndStack[len(queEndStack)-1]
 
+						if gapPrint.RefStart > chainStack[len(chainStack)-1].end {
+							chainStack = chainStack[0 : len(chainStack)-1]
+						}
+
 						if gapPrint.RefEnd-gapPrint.RefStart > 8 {
-							fmt.Println(strings.Trim(fmt.Sprintf("%v", gapPrint), "{}"))
+							fmt.Println(strings.Trim(fmt.Sprintf("%v", gapPrint), "{}"), chainStack[len(chainStack)-1].id)
 						}
 
 						// remove from stack
@@ -204,6 +242,12 @@ func main() {
 						queEndStack = queEndStack[0 : len(queEndStack)-1]
 						strandStack = strandStack[0 : len(strandStack)-1]
 					}
+
+					// if we have gone past our current chain, we remove an element from our stack
+					if newGap.RefStart > chainStack[len(chainStack)-1].end {
+						chainStack = chainStack[0 : len(chainStack)-1]
+					}
+
 				}
 			}
 
@@ -219,7 +263,6 @@ func main() {
 		if err != nil {
 			log.Fatalf("value assignment error", err)
 		}
-		//fmt.Println(gapStartStack, gapEndStack, "gapStacks")
 
 	}
 
@@ -235,10 +278,13 @@ func main() {
 		gapPrint.QueEnd = queEndStack[len(queEndStack)-1]
 
 		if gapPrint.RefEnd-gapPrint.RefStart > 8 {
-			fmt.Println(strings.Trim(fmt.Sprintf("%v", gapPrint), "{}"))
+			fmt.Println(strings.Trim(fmt.Sprintf("%v", gapPrint), "{}"), chainStack[len(chainStack)-1].id)
 		}
 
 		// remove from stack
+		if gapStartStack[len(gapStartStack)-1] > chainStack[len(chainStack)-1].end {
+			chainStack = chainStack[0 : len(chainStack)-1]
+		}
 		gapStartStack = gapStartStack[0 : len(gapStartStack)-1]
 		gapEndStack = gapEndStack[0 : len(gapEndStack)-1]
 		chrStack = chrStack[0 : len(chrStack)-1]
