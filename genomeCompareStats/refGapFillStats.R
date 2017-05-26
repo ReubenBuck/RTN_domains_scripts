@@ -79,6 +79,9 @@ for(i in 1:length(genomes)){
                             col.names = c("seqnames", "start", "end","que.seqnames","que.start", "que.end","strand","chainID"),
                             colClasses = c("character", "integer", "integer","character", "integer", "integer","character","integer"))
     # convert to GRanges, move from 0 based to 1 based
+    if(j == 2){
+      netOutput[netOutput$strand == "-", c("que.start", "que.end")] <- netOutput[netOutput$strand == "-", c("que.end", "que.start")]
+    }
     netOutput.gr <- GRanges(seqnames = netOutput$seqnames,
                             ranges = IRanges(start = netOutput$start + 1,
                                              end = netOutput$end + 1),

@@ -30,6 +30,12 @@ type gap struct {
 	RefEnd   int
 	QueStart int
 	QueEnd   int
+	Strand   string
+}
+
+type doubleStack struct {
+	ref int
+	que int
 }
 
 type net struct {
@@ -43,10 +49,8 @@ func main() {
 	var newGap gap
 	var chrStack []string
 	var netElem net
-	var fillStartStack []int
-	var fillEndStack []int
-	var quePosStack []int
-	var queEndStack []int
+	var fillStartStack []doubleStack
+	var fillEndStack []doubleStack
 	var strandStack []string
 	var fillPrint fill
 	var chainStack []int
@@ -73,13 +77,15 @@ func main() {
 			for i := len(fillStartStack) - 1; i > -1; i-- {
 
 				// send fill info to print
-				fillPrint.RefStart = fillStartStack[len(fillStartStack)-1]
-				fillPrint.RefEnd = fillEndStack[len(fillEndStack)-1]
+				fillPrint.RefStart = fillStartStack[len(fillStartStack)-1].ref
+				fillPrint.RefEnd = fillEndStack[len(fillEndStack)-1].ref
+				fillPrint.QueStart = fillStartStack[len(fillStartStack)-1].que
+				fillPrint.QueEnd = fillEndStack[len(fillEndStack)-1].que
+
 				fillPrint.RefChr = netElem.Chr
 				fillPrint.QueChr = chrStack[len(chrStack)-1]
 				fillPrint.Strand = strandStack[len(strandStack)-1]
-				fillPrint.QueStart = quePosStack[len(quePosStack)-1]
-				fillPrint.QueEnd = queEndStack[len(queEndStack)-1]
+
 				fillPrint.id = chainStack[len(chainStack)-1]
 
 				//	if fillPrint.RefEnd-fillPrint.RefStart > 8 {
@@ -89,9 +95,8 @@ func main() {
 				// remove from stack
 				fillStartStack = fillStartStack[0 : len(fillStartStack)-1]
 				fillEndStack = fillEndStack[0 : len(fillEndStack)-1]
+
 				chrStack = chrStack[0 : len(chrStack)-1]
-				quePosStack = quePosStack[0 : len(quePosStack)-1]
-				queEndStack = queEndStack[0 : len(queEndStack)-1]
 				strandStack = strandStack[0 : len(strandStack)-1]
 				chainStack = chainStack[0 : len(chainStack)-1]
 
@@ -110,6 +115,18 @@ func main() {
 			newGap.RefStart = newGap.RefStart + 1
 			newGap.RefEnd = newGap.RefStart + refLen - 1
 
+			refLen, err = strconv.Atoi(words[6])
+			newGap.QueStart, err = strconv.Atoi(words[5])
+			newGap.QueStart = newGap.QueStart
+			newGap.QueEnd = newGap.QueStart + refLen
+
+			newGap.Strand = words[4]
+			if newGap.Strand == "-" {
+				newGap.QueStart, newGap.QueEnd = newGap.QueEnd+1, newGap.QueStart-1
+			}
+			newGap.QueStart = newGap.QueStart + 1
+			newGap.QueEnd = newGap.QueEnd
+
 			//fmt.Println(newGap, "newFILL")
 
 			// if the gap is totaly left of our stack, we should print it
@@ -117,16 +134,17 @@ func main() {
 
 			if len(fillStartStack) > 0 && len(fillEndStack) > 0 {
 				for i := len(fillStartStack) - 1; i > -1; i-- {
-					if fillEndStack[i] < newGap.RefStart {
+					if fillEndStack[i].ref < newGap.RefStart {
 
 						// send fill info to print
-						fillPrint.RefStart = fillStartStack[len(fillStartStack)-1]
-						fillPrint.RefEnd = fillEndStack[len(fillEndStack)-1]
+						fillPrint.RefStart = fillStartStack[len(fillStartStack)-1].ref
+						fillPrint.RefEnd = fillEndStack[len(fillEndStack)-1].ref
+						fillPrint.QueStart = fillStartStack[len(fillStartStack)-1].que
+						fillPrint.QueEnd = fillEndStack[len(fillEndStack)-1].que
+
 						fillPrint.RefChr = netElem.Chr
 						fillPrint.QueChr = chrStack[len(chrStack)-1]
 						fillPrint.Strand = strandStack[len(strandStack)-1]
-						fillPrint.QueStart = quePosStack[len(quePosStack)-1]
-						fillPrint.QueEnd = queEndStack[len(queEndStack)-1]
 						fillPrint.id = chainStack[len(chainStack)-1]
 
 						//	if fillPrint.RefEnd-fillPrint.RefStart > 8 {
@@ -137,23 +155,22 @@ func main() {
 						fillStartStack = fillStartStack[0 : len(fillStartStack)-1]
 						fillEndStack = fillEndStack[0 : len(fillEndStack)-1]
 						chrStack = chrStack[0 : len(chrStack)-1]
-						quePosStack = quePosStack[0 : len(quePosStack)-1]
-						queEndStack = queEndStack[0 : len(queEndStack)-1]
 						strandStack = strandStack[0 : len(strandStack)-1]
 						chainStack = chainStack[0 : len(chainStack)-1]
 					}
 				}
 			}
 
-			if len(fillEndStack) > 0 && newGap.RefStart < fillEndStack[len(fillEndStack)-1] {
+			if len(fillEndStack) > 0 && newGap.RefStart < fillEndStack[len(fillEndStack)-1].ref {
 
-				fillPrint.RefStart = fillStartStack[len(fillStartStack)-1]
+				fillPrint.RefStart = fillStartStack[len(fillStartStack)-1].ref
 				fillPrint.RefEnd = newGap.RefStart - 1 //to get it in position
+				fillPrint.QueStart = fillStartStack[len(fillStartStack)-1].que
+				fillPrint.QueEnd = newGap.QueStart - 1 //to get it in position
+
 				fillPrint.RefChr = netElem.Chr
 				fillPrint.QueChr = chrStack[len(chrStack)-1]
 				fillPrint.Strand = strandStack[len(strandStack)-1]
-				fillPrint.QueStart = quePosStack[len(quePosStack)-1]
-				fillPrint.QueEnd = queEndStack[len(queEndStack)-1]
 				fillPrint.id = chainStack[len(chainStack)-1]
 
 				//	if fillPrint.RefEnd-fillPrint.RefStart > 8 {
@@ -161,7 +178,7 @@ func main() {
 				//	}
 
 				fillStartStack = fillStartStack[0 : len(fillStartStack)-1]
-				fillStartStack = append(fillStartStack, newGap.RefEnd+1) // to get it in position
+				fillStartStack = append(fillStartStack, doubleStack{newGap.RefEnd + 1, newGap.QueEnd + 1}) // to get it in position
 			}
 
 			//now we need to think what a gap interruption looks like
@@ -179,10 +196,17 @@ func main() {
 			newFill.QueChr = words[3]
 			newFill.Strand = words[4]
 			newFill.QueStart, err = strconv.Atoi(words[5])
-			newFill.QueStart = newFill.QueStart + 1
+			newFill.QueStart = newFill.QueStart
 			refLen, err = strconv.Atoi(words[6])
-			newFill.QueEnd = newFill.QueStart + refLen - 1
+			newFill.QueEnd = newFill.QueStart + refLen
 			newFill.id, err = strconv.Atoi(words[8])
+
+			if newFill.Strand == "-" {
+				newFill.QueStart, newFill.QueEnd = newFill.QueEnd, newFill.QueStart-1
+			}
+
+			newFill.QueStart = newFill.QueStart + 1
+			newFill.QueEnd = newFill.QueEnd
 
 			//fmt.Println(newFill, "newGAP")
 
@@ -191,16 +215,17 @@ func main() {
 			// If we can get to a start point that is beyond our end point we need to print
 			if len(fillStartStack) > 0 && len(fillEndStack) > 0 {
 				for i := len(fillStartStack) - 1; i > -1; i-- {
-					if fillEndStack[i] < newFill.RefStart {
+					if fillEndStack[i].ref < newFill.RefStart {
 
 						// send fill info to print
-						fillPrint.RefStart = fillStartStack[len(fillStartStack)-1]
-						fillPrint.RefEnd = fillEndStack[len(fillEndStack)-1]
+						fillPrint.RefStart = fillStartStack[len(fillStartStack)-1].ref
+						fillPrint.RefEnd = fillEndStack[len(fillEndStack)-1].ref
+						fillPrint.QueStart = fillStartStack[len(fillStartStack)-1].que
+						fillPrint.QueEnd = fillEndStack[len(fillEndStack)-1].que
+
 						fillPrint.RefChr = netElem.Chr
 						fillPrint.QueChr = chrStack[len(chrStack)-1]
 						fillPrint.Strand = strandStack[len(strandStack)-1]
-						fillPrint.QueStart = quePosStack[len(quePosStack)-1]
-						fillPrint.QueEnd = queEndStack[len(queEndStack)-1]
 						fillPrint.id = chainStack[len(chainStack)-1]
 
 						//				if fillPrint.RefEnd-fillPrint.RefStart > 8 {
@@ -211,8 +236,6 @@ func main() {
 						fillStartStack = fillStartStack[0 : len(fillStartStack)-1]
 						fillEndStack = fillEndStack[0 : len(fillEndStack)-1]
 						chrStack = chrStack[0 : len(chrStack)-1]
-						quePosStack = quePosStack[0 : len(quePosStack)-1]
-						queEndStack = queEndStack[0 : len(queEndStack)-1]
 						strandStack = strandStack[0 : len(strandStack)-1]
 						chainStack = chainStack[0 : len(chainStack)-1]
 					}
@@ -220,14 +243,12 @@ func main() {
 			}
 
 			// add to stack
-			fillStartStack = append(fillStartStack, newFill.RefStart)
-			fillEndStack = append(fillEndStack, newFill.RefEnd)
+			fillStartStack = append(fillStartStack, doubleStack{newFill.RefStart, newFill.QueStart})
+			fillEndStack = append(fillEndStack, doubleStack{newFill.RefEnd, newFill.QueEnd})
 			// we could add query start and end to these stacks too maybe?
 			// the start can be ref and query, if they both update the same way
 
 			chrStack = append(chrStack, newFill.QueChr)
-			quePosStack = append(quePosStack, newFill.QueStart)
-			queEndStack = append(queEndStack, newFill.QueEnd)
 			strandStack = append(strandStack, newFill.Strand)
 			chainStack = append(chainStack, newFill.id)
 
@@ -242,13 +263,14 @@ func main() {
 	for i := len(fillStartStack) - 1; i > -1; i-- {
 
 		// send fill info to print
-		fillPrint.RefStart = fillStartStack[len(fillStartStack)-1]
-		fillPrint.RefEnd = fillEndStack[len(fillEndStack)-1]
+		fillPrint.RefStart = fillStartStack[len(fillStartStack)-1].ref
+		fillPrint.RefEnd = fillEndStack[len(fillEndStack)-1].ref
+		fillPrint.QueStart = fillStartStack[len(fillStartStack)-1].que
+		fillPrint.QueEnd = fillEndStack[len(fillEndStack)-1].que
+
 		fillPrint.RefChr = netElem.Chr
 		fillPrint.QueChr = chrStack[len(chrStack)-1]
 		fillPrint.Strand = strandStack[len(strandStack)-1]
-		fillPrint.QueStart = quePosStack[len(quePosStack)-1]
-		fillPrint.QueEnd = queEndStack[len(queEndStack)-1]
 		fillPrint.id = chainStack[len(chainStack)-1]
 
 		//	if fillPrint.RefEnd-fillPrint.RefStart > 8 {
@@ -259,8 +281,6 @@ func main() {
 		fillStartStack = fillStartStack[0 : len(fillStartStack)-1]
 		fillEndStack = fillEndStack[0 : len(fillEndStack)-1]
 		chrStack = chrStack[0 : len(chrStack)-1]
-		quePosStack = quePosStack[0 : len(quePosStack)-1]
-		queEndStack = queEndStack[0 : len(queEndStack)-1]
 		strandStack = strandStack[0 : len(strandStack)-1]
 		chainStack = chainStack[0 : len(chainStack)-1]
 
