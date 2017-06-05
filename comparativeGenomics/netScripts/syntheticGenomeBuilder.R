@@ -195,6 +195,7 @@ if(!all(!overlapsAny(newRemapped.gr, newMapped.gr))){
 
 stretchedRef.gr <- c(newRemapped.gr, newMapped.gr)
 stretchedRef.gr <- sort(sortSeqlevels(stretchedRef.gr))
+genome(stretchedRef.gr) <- paste("stretched.",genomes["ref"], sep = "")
 
 save(stretchedRef.gr, file = opt$output)
 

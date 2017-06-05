@@ -1,68 +1,49 @@
 
 
-# now that we have the data, maybe we can compare it with other data,
-# the question is how can we do this
-# what data should we compare it to
-# what should we be looking for
+pkgs = names(sessionInfo()$otherPkgs)
+pkgs = paste('package:', pkgs, sep = "")
+lapply(pkg, detach, character.only = TRUE, unload = TRUE, force = TRUE)
+
+rm(list = ls())
+
+options(stringsAsFactors = FALSE)
 
 
-# There are a large numbre of possibilities at the moment that could all be very large levels of inquury
-# What do I think is most important
-# What is easiest to work with
 
-# It would be helpful to place markers in our plots to know where we actually are
-
-
+library(dplyr)
+library(GenomicRanges)
+devtools::source_url("http://raw.githubusercontent.com/ReubenBuck/RTN_domains_scripts/master/comparativeGenomics/netScripts/netDataFunctions.R")
 
 
 
 # lets get GC content
-
-
-
-
-devtools::source_url("http://raw.githubusercontent.com/ReubenBuck/RTN_domains_scripts/master/comparativeGenomics/netScripts/netDataFunctions.R")
-
-
 specRef = "hg19"
 specQue = "mm10"
 
 
-library(BSgenome.Hsapiens.UCSC.hg19)
+# binned Genome
+load(paste("Desktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/",specRef,".synthBin.RData",sep = ""))
+# fills and gaps
+load(paste("Desktop/RTN_domains/R_objects/netsAnalysis/formattedNetData/",specRef,".",specQue,".netData.RData",sep = ""))
+#load(paste("Desktop/RTN_domains/R_objects/netsAnalysis/stretchedGapAnnotation/",specRef,".stretch.RData", sep = ""))
+# shift levels
+load(paste("Desktop/RTN_domains/R_objects/netsAnalysis/shiftData/",specRef,".expand.breaks.RData", sep = ""))
+
+# load in sequence data
+if(specRef == "hg19")
+  library(BSgenome.Hsapiens.UCSC.hg19); wholeGenoSeq <- BSgenome.Hsapiens.UCSC.hg19
+if(specRef == "mm10")
+  library(BSgenome.Mmusculus.UCSC.mm10); wholeGenoSeq <- BSgenome.Mmusculus.UCSC.mm10
 
 
-load(paste("Desktop/RTN_domains/R_objects/mappedGaps/",specRef,".",specQue,".netData.RData",sep = ""))
-load(paste("Desktop/RTN_domains/R_objects/mappedGaps/",specRef,".stretch.RData", sep = ""))
-load(paste("Desktop/RTN_domains/R_objects/mappedGaps/",specRef,".expand.breaks.RData", sep = ""))
-
-
-
-synthGenome <- GRanges(seqnames = seqlevels(stretchedRef.gr), 
-                       ranges = IRanges(width = seqlengths(stretchedRef.gr), end = seqlengths(stretchedRef.gr)))
-
-# select bin size
-binSize <- 2e5
-
-# bin synthetic genome
-synthBin.gr <- unlist(slidingWindows(synthGenome, width = binSize, step = binSize))
-
-
-
-
-# need more than a shift
-# need more of a width change
-
-hist((width(refFill.gr)), breaks = 100)
-# its about 20000 bp long
-# do we get the value for each range and then 
+# store original fill coordinates into metadata
 refFillSpecial.gr <- sort(refFill.gr)
 refFillSpecial.gr$refRanges = granges(refFillSpecial.gr, use.mcols = FALSE)
 refFillSpecial.gr$refRangeID <- 1:length(refFillSpecial.gr)
 
+# place fills into stretched genome
 refFillSpecial.gr <- genoExpandBreak(refFillSpecial.gr, newSynthRefShift, seqlengths(stretchedRef.gr))
-# sort them into bins 
 
-# how do we do the bin sorting?
 
 ol <- findOverlaps(refFillSpecial.gr, synthBin.gr)
 
@@ -70,7 +51,8 @@ ol <- findOverlaps(refFillSpecial.gr, synthBin.gr)
 df <- data.frame(refRangeID = refFillSpecial.gr$refRangeID[queryHits(ol)],
                  synthBinID = subjectHits(ol), 
                  olWidth = width(refFillSpecial.gr[queryHits(ol)]))
-library(dplyr)
+
+
 dfSum <- summarise(group_by(df, refRangeID, synthBinID),
                    olWidth = sum(olWidth))
 head(dfSum)

@@ -30,6 +30,7 @@ genoExpandBreak <- function(x.gr, synthGenome, expandedSeqlengths){
   pInt <- pintersect(x.gr[queryHits(ol)], synthGenome[subjectHits(ol)], drop.nohit.ranges=TRUE)
   seqlengths(pInt) <- expandedSeqlengths
   expanded.gr <- shift(pInt, shift = synthGenome$shift[subjectHits(ol)])
+  genome(expanded.gr) <- paste("stretched.", genome(synthGenome), sep = "")
   return(expanded.gr)
 }
 
@@ -43,6 +44,6 @@ genoExpandStretch <- function(x.gr, synthGenome, expandedSeqlengths){
                                           end = end(x.gr) + synthGenome[olEnd]$shift))
   mcols(expanded.gr) <- mcols(x.gr)
   seqlengths(expanded.gr) <- expandedSeqlengths
-  genome(expanded.gr) <- genome(x.gr)
+  genome(expanded.gr) <- paste("stretched.", genome(synthGenome), sep = "")
   return(expanded.gr)
 }
