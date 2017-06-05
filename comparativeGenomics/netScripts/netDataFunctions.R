@@ -15,3 +15,34 @@ rmSeqGapsFromNetOutput <- function(netOutput, seqGaps){
   return(sDiff)
 }
 
+switchGenome <- function(queGenome.gr){
+  GRanges(mcols(queGenome.gr)$queRanges, 
+          queRanges = granges(queGenome.gr, use.mcols = FALSE), 
+          sData = mcols(queGenome.gr)$sData, 
+          chainID = mcols(queGenome.gr)$chainID)
+}
+
+
+
+genoExpandBreak <- function(x.gr, synthGenome, expandedSeqlengths){
+  seqlengths(x.gr) <- seqlengths(synthGenome)
+  ol <- findOverlaps(x.gr, synthGenome)
+  pInt <- pintersect(x.gr[queryHits(ol)], synthGenome[subjectHits(ol)], drop.nohit.ranges=TRUE)
+  seqlengths(pInt) <- expandedSeqlengths
+  expanded.gr <- shift(pInt, shift = synthGenome$shift[subjectHits(ol)])
+  return(expanded.gr)
+}
+
+genoExpandStretch <- function(x.gr, synthGenome, expandedSeqlengths){
+  x.gr <- sort(sortSeqlevels(x.gr))
+  seqlengths(x.gr) <- seqlengths(synthGenome)
+  olStart <- findOverlaps(x.gr, synthGenome, select = "first")
+  olEnd <- findOverlaps(x.gr, synthGenome, select = "last")
+  expanded.gr <- GRanges(seqnames = seqnames(x.gr), 
+                         ranges = IRanges(start = start(x.gr) + synthGenome[olStart]$shift,
+                                          end = end(x.gr) + synthGenome[olEnd]$shift))
+  mcols(expanded.gr) <- mcols(x.gr)
+  seqlengths(expanded.gr) <- expandedSeqlengths
+  genome(expanded.gr) <- genome(x.gr)
+  return(expanded.gr)
+}

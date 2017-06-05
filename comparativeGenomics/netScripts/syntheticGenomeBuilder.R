@@ -4,9 +4,9 @@
 
 # could write this as a scripts
 
-# pkgs = names(sessionInfo()$otherPkgs)
-# pkgs = paste('package:', pkgs, sep = "")
-# lapply(pkg, detach, character.only = TRUE, unload = TRUE, force = TRUE)
+ pkgs = names(sessionInfo()$otherPkgs)
+ pkgs = paste('package:', pkgs, sep = "")
+ lapply(pkg, detach, character.only = TRUE, unload = TRUE, force = TRUE)
 
 rm(list = ls())
 
@@ -30,17 +30,13 @@ if(any(is.na(opt))){
 library(dplyr)
 library(zoo)
 library(GenomicRanges)
+devtools::source_url("http://raw.githubusercontent.com/ReubenBuck/RTN_domains_scripts/master/comparativeGenomics/netScripts/netDataFunctions.R")
 
 
 load(opt$input)
 
 
-switchGenome <- function(queGenome.gr){
-  GRanges(mcols(queGenome.gr)$queRanges, 
-          queRanges = granges(queGenome.gr, use.mcols = FALSE), 
-          sData = mcols(queGenome.gr)$sData, 
-          chainID = mcols(queGenome.gr)$chainID)
-}
+
 
 
 ## get the loss bases for the query genome

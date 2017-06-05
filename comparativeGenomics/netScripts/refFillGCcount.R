@@ -18,27 +18,18 @@
 
 # lets get GC content
 
-load("~/Desktop/RTN_domains/R_objects/mappedGaps/hg19.mm10.netData.RData")
-
-library(BSgenome.Hsapiens.UCSC.hg19)
-
-seqlengths(refFill.gr) <- seqlengths(refFill.gr) - 1
-
-genoSeq <- getSeq(BSgenome.Hsapiens.UCSC.hg19, GRangesList(refFill.gr[1:100], refFill.gr[101:200]))
-genoSeq2 <- lapply(genoSeq,unlist)
-lapply(FUN = letterFrequency, X = genoSeq2, "CG")
 
 
-# how to shrink an expanded genome back to normal
 
-
-# removing bases 
-# what happens to the regions within 
-
+devtools::source_url("http://raw.githubusercontent.com/ReubenBuck/RTN_domains_scripts/master/comparativeGenomics/netScripts/netDataFunctions.R")
 
 
 specRef = "hg19"
 specQue = "mm10"
+
+
+library(BSgenome.Hsapiens.UCSC.hg19)
+
 
 load(paste("Desktop/RTN_domains/R_objects/mappedGaps/",specRef,".",specQue,".netData.RData",sep = ""))
 load(paste("Desktop/RTN_domains/R_objects/mappedGaps/",specRef,".stretch.RData", sep = ""))
@@ -57,22 +48,6 @@ synthBin.gr <- unlist(slidingWindows(synthGenome, width = binSize, step = binSiz
 
 
 
-a.gr <- genoExpandStretch(x.gr = newSynthRefShift[width(newSynthRefShift)>0], 
-                          synthGenome = newSynthRefShift, 
-                          expandedSeqlengths = seqlengths(stretchedRef.gr))
-
-a.gr
-g.gr <- gaps(a.gr)
-g.gr <- g.gr[strand(g.gr) == "*"]
-
-
-olA <- findOverlaps(synthBin.gr, a.gr, select = "last")
-olG <- findOverlaps(synthBin.gr, g.gr, select = "last")
-
-# do the shift and change the start
-
-synthBinShrink.gr <- resize(head(synthBin.gr), width = a.gr[head(olA)]$shift, fix = "end")
-synthBinShrink.gr <- shift(synthBinShrink.gr, shift = -a.gr[head(olA)]$shift)
 
 # need more than a shift
 # need more of a width change
@@ -160,56 +135,7 @@ plot(start(synthBin.gr[seqnames(synthBin.gr)=="chr16"]),
 
 
 
-
-dfU <- unique(df)
-
-
-
 # which bins each piece belongs to.
 # this will give us our GC content
-
-# what sequnce do we consider?
-# just fills?
-# or more
-# nonGap regions?
-# nonGaps includes unmappable regions
-
-
-# fill regions Only includes areas of DNA that align
-# gap regions are those between fills in chains
-# seq gaps are ignored
-# nonRBH gaps
-# queRanges Gaps
-
-
-# if we do the fills first
-
-
-x.gr <- refFillSpecial.gr
-
-a.gr[head(ol)]
-head(g.gr)
-
-genoExpandStretch <- function(x.gr, synthGenome, expandedSeqlengths){
-  x.gr <- sort(sortSeqlevels(x.gr))
-  seqlengths(x.gr) <- seqlengths(synthGenome)
-  olStart <- findOverlaps(x.gr, synthGenome, select = "first")
-  olEnd <- findOverlaps(x.gr, synthGenome, select = "last")
-  expanded.gr <- GRanges(seqnames = seqnames(x.gr), 
-                         ranges = IRanges(start = start(x.gr) + synthGenome[olStart]$shift,
-                                          end = end(x.gr) + synthGenome[olEnd]$shift))
-  mcols(expanded.gr) <- mcols(x.gr)
-  seqlengths(expanded.gr) <- expandedSeqlengths
-  genome(expanded.gr) <- genome(x.gr)
-  return(expanded.gr)
-}
-
-x.gr <- newSynthRefShift
-
-# if it lands in the gap bring it back
-
-
-# newSynthRefShift might be removing ranges with length 0
-# because length has to be at least one
 
 
