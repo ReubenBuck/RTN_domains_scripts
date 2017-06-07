@@ -1,8 +1,6 @@
 
 
-pkgs = names(sessionInfo()$otherPkgs)
-pkgs = paste('package:', pkgs, sep = "")
-lapply(pkg, detach, character.only = TRUE, unload = TRUE, force = TRUE)
+# we could try removing some of our seq length changes
 
 rm(list = ls())
 
@@ -30,11 +28,13 @@ load(paste("Desktop/RTN_domains/R_objects/netsAnalysis/formattedNetData/",specRe
 load(paste("Desktop/RTN_domains/R_objects/netsAnalysis/shiftData/",specRef,".expand.breaks.RData", sep = ""))
 
 # load in sequence data
-if(specRef == "hg19")
+if(specRef == "hg19"){
   library(BSgenome.Hsapiens.UCSC.hg19); wholeGenoSeq <- BSgenome.Hsapiens.UCSC.hg19
-if(specRef == "mm10")
+  
+}
+if(specRef == "mm10"){
   library(BSgenome.Mmusculus.UCSC.mm10); wholeGenoSeq <- BSgenome.Mmusculus.UCSC.mm10
-
+}
 
 # store original fill coordinates into metadata
 refFillSpecial.gr <- sort(refFill.gr)
@@ -42,82 +42,49 @@ refFillSpecial.gr$refRanges = granges(refFillSpecial.gr, use.mcols = FALSE)
 refFillSpecial.gr$refRangeID <- 1:length(refFillSpecial.gr)
 
 # place fills into stretched genome
-refFillSpecial.gr <- genoExpandBreak(refFillSpecial.gr, newSynthRefShift, seqlengths(stretchedRef.gr))
-
-
+refFillSpecial.gr <- genoExpandBreak(refFillSpecial.gr, newSynthRefShift, seqlengths(synthBin.gr))
 ol <- findOverlaps(refFillSpecial.gr, synthBin.gr)
 
-
+# identify boundry fills and asign them correctly
 df <- data.frame(refRangeID = refFillSpecial.gr$refRangeID[queryHits(ol)],
                  synthBinID = subjectHits(ol), 
                  olWidth = width(refFillSpecial.gr[queryHits(ol)]))
-
-
 dfSum <- summarise(group_by(df, refRangeID, synthBinID),
                    olWidth = sum(olWidth))
-head(dfSum)
 
-# we can use the same approcah as before to fix the ties
-# we can get all teh refFills and get their GC content
+# sort boundary overlapping regions
 RefFillGC.gr <- resize(sort(refFill.gr)[dfSum$refRangeID], width = dfSum$olWidth, fix = "start")
-
 RefFillGC.gr$synthBinID= dfSum$synthBinID
-
+# sort ties
 ol <- findOverlaps(RefFillGC.gr)
 ol <- ol[!(isSelfHit(ol) | isRedundantHit(ol))]
-
 gcShift <- end(RefFillGC.gr[queryHits(ol)]) - start(RefFillGC.gr[subjectHits(ol)]) + 1
-
 gcShiftSum <- summarise(
   group_by(data_frame(subjectHit = subjectHits(ol), shift = gcShift), 
            subjectHit), shift = sum(shift))
-
 RefFillGC.gr[gcShiftSum$subjectHit] <- shift(RefFillGC.gr[gcShiftSum$subjectHit], shift = gcShiftSum$shift)
 
-# convert that to a list and extract the sequence
 
+# convert that to a list
 RefFillGC.grl <- GenomicRanges::split(RefFillGC.gr,f = RefFillGC.gr$synthBinID)
 
-
-
-seqlengths(RefFillGC.grl) <- seqlengths(BSgenome.Hsapiens.UCSC.hg19)
-genoSeq <- getSeq(BSgenome.Hsapiens.UCSC.hg19, RefFillGC.grl)
+# and extract the sequence and count GC content
+#seqlengths(RefFillGC.grl) <- seqlengths(wholeGenoSeq)
+genoSeq <- getSeq(wholeGenoSeq, RefFillGC.grl)
 genoSeq2 <- lapply(genoSeq,unlist)
 gcNumber <- lapply(FUN = letterFrequency, X = genoSeq2, "CG")
 totalWidth <- lapply(genoSeq2, length)
 gcContent <- unlist(gcNumber)/unlist(totalWidth)
 
-plot(gcContent[1:2000], type = "l")
 
 
-synthBin.gr$gcContent = NA
-synthBin.gr$gcContent = as.numeric(synthBin.gr$gcContent)
+synthBin.gr$gcContent = as.numeric(NA)
+synthBin.gr$fill = 0
 
-mcols(synthBin.gr[as.integer(names(RefFillGC.grl))])$gcContent <- as.numeric(gcContent)
+synthBin.gr[as.integer(names(RefFillGC.grl))]$gcContent <- as.numeric(gcContent)
+synthBin.gr[as.integer(names(RefFillGC.grl))]$fill <- as.numeric(totalWidth)
 
+save(synthBin.gr, file = paste("Desktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/",specRef,".synthBin.RData", sep = ""))
 
-plot(start(synthBin.gr[seqnames(synthBin.gr)=="chr16"]), 
-     synthBin.gr[seqnames(synthBin.gr)=="chr16"]$gcContent, 
-     ylim = c(0.3,0.65) )
-
-
-# can this be affected by the total number of fill bases
-
-
-
-#the idea is return the relevant coordinates
-# so we can extract the correct information
-
-
-# changes to make to our earlier data.
-# seqlengths are too long
-# mayeb we don't need to add 1 to the end of everything
-
-# it is probably worth learnign the correct convention for dealing with intervals 
-
-
-
-# which bins each piece belongs to.
-# this will give us our GC content
 
 

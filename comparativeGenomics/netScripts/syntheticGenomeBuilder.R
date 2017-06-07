@@ -4,9 +4,7 @@
 
 # could write this as a scripts
 
- pkgs = names(sessionInfo()$otherPkgs)
- pkgs = paste('package:', pkgs, sep = "")
- lapply(pkg, detach, character.only = TRUE, unload = TRUE, force = TRUE)
+
 
 rm(list = ls())
 
@@ -16,8 +14,8 @@ option_list = list(
               help="input Rdata file containting output from refGapFillStats"),
   make_option(c("-o", "--output"), default=NA, type='character',
               help="stretched genome output, svaed as RData"),
-  make_option(c("-s", "--synthGenome"), default=NA, type='character',
-              help="synthetic genome file, saved as RData")
+  make_option(c("-s", "--shiftGenome"), default=NA, type='character',
+              help="newSynthRefShift genome file, requried coordiantes for genome expansion,saved as RData")
 )
 opt = parse_args(OptionParser(option_list=option_list))
 
@@ -137,7 +135,7 @@ for(chr in seqlevels(synthRefShift)){
 names(newDNA) <- seqlevels(synthRefShift)
 newSynthRefShift <- unlist(GRangesList(newSynthRefShift))
 
-save(newSynthRefShift, file = opt$synthGenome)
+save(newSynthRefShift, file = opt$shiftGenome)
 
 
 # newSynthRefShift spans the entire reference genome containg intervals between gaps, 
@@ -153,9 +151,14 @@ newMapped.gr <- shift(newMapped.gr, shift = newSynthRefShift$shift[subjectHits(o
 
 
 # shift query regions into gap spaces made in reference
+# increase seqlengths to allow for shift
 seqlengths(newSynthRefShift) <- seqlengths(newSynthRefShift) + 1
 seqlengths(remapped.gr) <- seqlengths(remapped.gr) + 1
 ol <- findOverlaps(resize(remapped.gr, width = 1, fix = "start"), shift(newSynthRefShift, 1))
+# decrease agian back to normal
+seqlengths(newSynthRefShift) <- seqlengths(newSynthRefShift) - 1
+seqlengths(remapped.gr) <- seqlengths(remapped.gr) - 1
+
 newRemapped.gr <- remapped.gr
 seqlengths(newRemapped.gr) <- seqlengths(newMapped.gr)
 newRemapped.gr <- shift(newRemapped.gr[queryHits(ol)], newSynthRefShift$shift[subjectHits(ol)])

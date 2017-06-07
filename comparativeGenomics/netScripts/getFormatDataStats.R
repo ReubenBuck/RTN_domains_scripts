@@ -1,6 +1,6 @@
 
 specRef = "hg19"
-queRef = "mm9"
+specQue = "mm10"
 
 load(paste("Desktop/RTN_domains/R_objects/mappedGaps/",specRef,".",specQue,".netData.RData",sep = ""))
 

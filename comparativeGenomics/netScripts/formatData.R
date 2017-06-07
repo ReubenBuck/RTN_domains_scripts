@@ -1,16 +1,17 @@
 # collect statistics for our gap finding process and ancestral genome analysis
 
 
-pkgs = names(sessionInfo()$otherPkgs)
-pkgs = paste('package:', pkgs, sep = "")
-lapply(pkg, detach, character.only = TRUE, unload = TRUE, force = TRUE)
+
+# need to sort out coordinate system tommorow
+
+
 
 rm(list = ls())
 
 options(stringsAsFactors = FALSE)
 
-library(GenomicRanges)
 library(RMySQL)
+library(GenomicRanges)
 
 
 ## read functions
@@ -25,17 +26,23 @@ devtools::source_url("http://raw.githubusercontent.com/ReubenBuck/RTN_domains_sc
 genomes <- c(ref = "hg19",que = "mm10")
 
 #gap file
-gapFiles <- c(ref = "~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/processed/hg19.mm10.net.gaps",
-              que = "~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/processed/mm10.hg19.net.gaps")
+gapFiles <- c(ref = paste("~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/processed/", 
+                          genomes["ref"], ".", genomes["que"], ".net.gaps", sep = ""),
+              que = paste("~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/processed/", 
+                          genomes["que"], ".", genomes["ref"], ".net.gaps", sep = ""))
 
 
 # fill file
-fillFiles <- c(ref = "~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/processed/hg19.mm10.net.fills",
-               que = "~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/processed/mm10.hg19.net.fills")
+fillFiles <- c(ref = paste("~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/processed/", 
+                           genomes["ref"], ".", genomes["que"], ".net.fills", sep = ""),
+               que = paste("~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/processed/", 
+                           genomes["que"], ".", genomes["ref"], ".net.fills", sep = ""))
 
 # ancestral DNA file
-ancDNAfiles <- c(ref = "~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/ancestralGenome/hg19.merge.ancestral.bed",
-                 que = "~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/ancestralGenome/mm10.merge.ancestral.bed")
+ancDNAfiles <- c(ref = paste("~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/ancestralGenome/", 
+                             genomes["ref"], ".merge.ancestral.bed", sep = ""),
+                 que =  paste("~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/ancestralGenome/", 
+                              genomes["que"], ".merge.ancestral.bed", sep = ""))
 
 
 # read in info
@@ -45,15 +52,15 @@ for(i in 1:length(genomes)){
   chrInfo <- dbGetQuery(mychannel, "SELECT * FROM chromInfo;")
   #chrInfo <- chrInfo[-(grep(pattern = "_", x = chrInfo$chrom)),]
   
-  # get seq gaps
+  # get seq gaps, 0 based half open
   seqGaps <- dbGetQuery(mychannel, "SELECT * FROM gap;")
   #seqGaps <- seqGaps[-(grep(pattern = "_", x = seqGaps$chrom)),]
   seqGaps.gr <- GRanges(seqnames = Rle(seqGaps$chrom), 
                         ranges = IRanges(start = seqGaps$chromStart + 1, 
-                                         end = seqGaps$chromEnd + 1)
+                                         end = seqGaps$chromEnd)
   )
   seqlevels(seqGaps.gr) <- chrInfo$chrom
-  seqlengths(seqGaps.gr) <- chrInfo$size + 1
+  seqlengths(seqGaps.gr) <- chrInfo$size
   genome(seqGaps.gr) <- genomes[i]
   
   seqGaps.gr <- sort(sortSeqlevels(seqGaps.gr))
@@ -75,22 +82,22 @@ for(i in 1:length(genomes)){
       netOutput[netOutput$strand == "-", c("que.start", "que.end")] <- netOutput[netOutput$strand == "-", c("que.end", "que.start")]
     }
     netOutput.gr <- GRanges(seqnames = netOutput$seqnames,
-                            ranges = IRanges(start = netOutput$start + 1,
-                                             end = netOutput$end + 1),
+                            ranges = IRanges(start = netOutput$start,
+                                             end  = netOutput$end),
                             queRanges = GRanges(seqnames = netOutput$que.seqnames,
-                                                ranges = IRanges(start = netOutput$que.start + 1,
-                                                                 end = netOutput$que.end + 1)
+                                                ranges = IRanges(start = netOutput$que.start,
+                                                                 end = netOutput$que.end)
                             ),
                             strand = "*",
                             sData = netOutput$strand,
                             chainID = netOutput$chainID
     )
     seqlevels(netOutput.gr) <- chrInfo$chrom
-    seqlengths(netOutput.gr) <- chrInfo$size + 1
+    seqlengths(netOutput.gr) <- chrInfo$size
     genome(netOutput.gr) <- genomes[i]
     
     seqlevels(netOutput.gr$queRanges) <- altChrInfo$chrom
-    seqlengths(netOutput.gr$queRanges) <- altChrInfo$size + 1
+    seqlengths(netOutput.gr$queRanges) <- altChrInfo$size
     genome(netOutput.gr$queRanges) <- genomes[genomes != genomes[i]]
     
     netOutput.gr <- rmSeqGapsFromNetOutput(netOutput = netOutput.gr, seqGaps = seqGaps.gr)
@@ -110,11 +117,11 @@ for(i in 1:length(genomes)){
                        colClasses = c("character", "integer", "integer"))
   # convert to GRanges, move from 0 based to 1 based
   ancDna.gr <- GRanges(seqnames = ancDna$seqnames,
-                       ranges = IRanges(start = ancDna$start  + 1,
-                                        end = ancDna$end + 1)
+                       ranges = IRanges(start = ancDna$start,
+                                        end = ancDna$end)
   )
   seqlevels(ancDna.gr) <- chrInfo$chrom
-  seqlengths(ancDna.gr) <- chrInfo$size + 1
+  seqlengths(ancDna.gr) <- chrInfo$size
   genome(ancDna.gr) <- genomes[i]
   
   ancDna.gr <- sort(sortSeqlevels(ancDna.gr))
@@ -184,7 +191,7 @@ save("genomes","queChrInfo", "queAncDna.gr", "queFill.gr", "queFillGaps.gr", "qu
      "queNonRBHGap.gr", "queNonRBHFill.gr","queSeqGaps.gr", 
      "refChrInfo" ,"refAncDna.gr", "refFill.gr", "refFillGaps.gr", "refGap.gr", 
      "refNonRBHGap.gr", "refNonRBHFill.gr", "refSeqGaps.gr", 
-     file = paste("~/Desktop/RTN_domains/R_objects/mappedGaps/", genomes[1],"." ,genomes[2], ".netData.RData", sep = ""))
+     file = paste("~/Desktop/RTN_domains/R_objects/netsAnalysis/formattedNetData/", genomes["ref"],"." ,genomes["que"], ".netData.RData", sep = ""))
 
 
 
