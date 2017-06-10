@@ -1,4 +1,3 @@
-# what other things can I measure that can assocaite with dependant variable
 
 # transposable elements, our four groups
 # gene density
@@ -19,10 +18,6 @@
 # gap pieces per gap bp
 
 # the average size of the event, there is a distribution of events
-
-
-
-library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 
 
 
@@ -104,9 +99,9 @@ ol <- findOverlaps(synthBin.gr, exon.gr)
 pInt <- pintersect(synthBin.gr[queryHits(ol)], exon.gr[subjectHits(ol)])
 
 exonSum <- summarise(group_by(data.frame(queryHits = queryHits(ol), 
-                                          exon = width(pInt)), 
-                               queryHits), 
-                        exon = sum(exon))
+                                         exon = width(pInt)), 
+                              queryHits), 
+                     exon = sum(exon))
 
 synthBin.gr$exon <- NA
 synthBin.gr$exon[exonSum$queryHits] <- exonSum$exon
@@ -119,12 +114,22 @@ ol <- findOverlaps(synthBin.gr, intron.gr)
 pInt <- pintersect(synthBin.gr[queryHits(ol)], intron.gr[subjectHits(ol)])
 
 intronSum <- summarise(group_by(data.frame(queryHits = queryHits(ol), 
-                                            intron = width(pInt)), 
-                                 queryHits), 
-                        intron = sum(intron))
+                                           intron = width(pInt)), 
+                                queryHits), 
+                       intron = sum(intron))
 
 synthBin.gr$intron <- NA
 synthBin.gr$intron[intronSum$queryHits] <- intronSum$intron
+
+
+
+# laminaAssocaited domains 
+
+laminB1 <- read.table("~/Desktop/RTN_domains/data/UCSCtracks/hg19/laminB1Lads", 
+                      col.names = c("bin", "seqnames", "start", "end"))
+
+
+
 
 
 
@@ -152,7 +157,7 @@ synthBin.gr$distFromTelomere <- pmin(s,sR)
 
 
 
-### recombination rate
+### recombination rate, may get these from else where
 
 recombRate <- read.table("~/Desktop/RTN_domains/data/UCSCtracks/hg19/recombRate.txt",
                          col.names = c("seqnames",	"start",	"end",	"name",	
@@ -177,17 +182,23 @@ chrChoice = "chr6"
 plot(recombRate$start[recombRate$seqnames == chrChoice], 
      recombRate$decodeMale[recombRate$seqnames == chrChoice], type = "l")
 plot(recombRate$start[recombRate$seqnames == chrChoice], 
-      recombRate$marshfieldMale[recombRate$seqnames == chrChoice], type = "l")
+     recombRate$marshfieldMale[recombRate$seqnames == chrChoice], type = "l")
 plot(recombRate$start[recombRate$seqnames == chrChoice], 
-      recombRate$genethonMale[recombRate$seqnames == chrChoice], type = "l")
+     recombRate$genethonMale[recombRate$seqnames == chrChoice], type = "l")
 
 
 plot(recombRate$start[recombRate$seqnames == chrChoice], 
      recombRate$decodeFemale[recombRate$seqnames == chrChoice], type = "l")
 plot(recombRate$start[recombRate$seqnames == chrChoice], 
-      recombRate$marshfieldFemale[recombRate$seqnames == chrChoice], type = "l")
+     recombRate$marshfieldFemale[recombRate$seqnames == chrChoice], type = "l")
 plot(recombRate$start[recombRate$seqnames == chrChoice], 
-      recombRate$genethonFemale[recombRate$seqnames == chrChoice], type = "l")
+     recombRate$genethonFemale[recombRate$seqnames == chrChoice], type = "l")
+
+
+
+
+
+
 
 
 
@@ -209,141 +220,4 @@ synthBin.gr[synthBin.gr$cdsExon > 50000 & !is.na(synthBin.gr$cdsExon)]
 
 plot(start(synthBin.gr[seqnames(synthBin.gr) == "chr2"]),synthBin.gr[seqnames(synthBin.gr) == "chr2"]$cdsExon )
 
-
-
-library(spdep)
-library(igraph)
-
-
-
-df <- data.frame(synthBin.gr)
-df$chrType = "autosome"
-df[df$seqnames == "chrX","chrType"] <- "sexChr"
-
-df[df$seqGap + df$missingGap > 20000,] <- NA
-df <- df[complete.cases(df),]
-
-df$gcContent <- df$gcContent * 100
-
-ol<-findOverlaps(synthBin.gr, maxgap = 30*width(synthBin.gr)[1])
-ol <- ol[!(isRedundantHit(ol))]
-# remove NA hits
-ol <- ol[!is.na(df$refIns[queryHits(ol)])]
-ol <- ol[!is.na(df$refIns[subjectHits(ol)])]
-olMat <- data.frame(ol)
-G <- graph.data.frame(d = olMat,directed=FALSE)
-weight <- olMat$subjectHits - olMat$queryHits
-weight <- -(weight - (max(weight) + 1)) / max(weight)
-weight[isSelfHit(ol)] <- 0
-E(G)$weight <- weight
-A <- as_adjacency_matrix(G,type="both",names=FALSE,sparse=TRUE,edges = FALSE, attr = "weight")
-
-
-
-
-dfChr <- df[df$seqnames == "chr2",]
-
-A <- A[df$seqnames == "chr2"  ,df$seqnames == "chr2" ]
-wMat <- mat2listw(A)
-
-
-# con
-
-
-
-
-spatMod <- errorsarlm(data = dfChr, refDel ~ gcContent + dnasePeaks + dnaseActivity + exon + intron, listw = wMat)
-
-summary(spatMod)
-
-
-qqnorm(residuals(spatMod))
-
-acf(residuals(spatMod),lag.max = 40)
-
-plot(fitted(spatMod),residuals(spatMod))
-
-
-ESS <- sum((fitted(spatMod) - mean((dfChr$refDel)))^2)
-RSS <- sum(residuals(spatMod)^2)
-
-1 - (RSS / (RSS + ESS))
-
-bptest.sarlm(spatMod)
-
-
-spatModAuto <- spautolm(data = dfChr, queDel ~ gcContent + dnasePeaks + dnaseActivity + exon + intron, listw = wMat)
-
-ESS <- sum((fitted(spatModAuto) - mean((dfChr$refDel)))^2)
-RSS <- sum(residuals(spatModAuto)^2)
-
-1 - (RSS / (RSS + ESS))
-
-qqnorm(residuals(spatModAuto))
-plot(residuals(spatModAuto))
-bptest(spatModAuto)
-
-
-
-# so now we have a modeling appraoch that might actually work
-
-
-lm.morantest(spatMod, wMat)
-
-moran.test(x = residuals(spatMod), wMat)
-moran.test(x = residuals(modChr1), wMat)
-
-
-# so now there is no autocorrelation in our residuals
-# therefore we could succesfully remove the error
-
-# next to get the R squered to determine our variance explained by the model.
-
-
-
-modChr1 <- lm(data = dfChr, (queIns - queDel) ~ gcContent + dnasePeaks + dnaseActivity + exon + intron)
-
-spCor <- sp.correlogram(neighbours = wMat$neighbours, var = dfChr$refIns, order = 30)
-
-plot.spcor(spCor)
-
-
-acf(residuals(modChr1),lag.max = 100)
-
-
-
-h <- hist(scale(residuals(spatMod)), breaks = 1000)
-plot( sort(rnorm(h$mids)), h$mids, xlim = c(-4,4), ylim = c(-4,4))
-
-
-ESS <- sum((fitted(modChr1) - mean((df$queIns - df$queDel)))^2)
-RSS <- sum((fitted(modChr1) - mean((df$queIns - df$queDel)))^2)
-
-ts <- as.ts(modChr1)
-
-acf(residuals(spatMod))
-acf(residuals(modChr1))
-
-# it is removing the auto correlation
-
-# so we have a significant Morans I 
-# and a significant autocorrelation
-# when we apply the new spatial model we can factor that out.
-lm.morantest(modQueIns, listw = wMat)
-
-
-
-## A simple example with a couple of actors
-## The typical case is that these tables are read in from files....
-actors <- data.frame(name=c("Alice", "Bob", "Cecil", "David",
-                            "Esmeralda"),
-                     age=c(48,33,45,34,21),
-                     gender=c("F","M","F","M","F"))
-relations <- data.frame(from=c("Bob", "Cecil", "Cecil", "David",
-                               "David", "Esmeralda"),
-                        to=c("Alice", "Bob", "Alice", "Alice", "Bob", "Alice"),
-                        same.dept=c(FALSE,FALSE,TRUE,FALSE,FALSE,TRUE),
-                        friendship=c(4,5,5,2,1,1), advice=c(4,5,5,4,2,3))
-g <- graph_from_data_frame(relations, directed=TRUE, vertices=actors)
-print(g, e=TRUE, v=TRUE)
 
