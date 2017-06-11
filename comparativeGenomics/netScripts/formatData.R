@@ -40,9 +40,9 @@ fillFiles <- c(ref = paste("~/Desktop/RTN_domains/data/comparativeGenomics/netAl
 
 # ancestral DNA file
 ancDNAfiles <- c(ref = paste("~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/ancestralGenome/", 
-                             genomes["ref"], ".merge.ancestral.bed", sep = ""),
+                             genomes["ref"], ".merge.ancestral.pass.bed", sep = ""),
                  que =  paste("~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/ancestralGenome/", 
-                              genomes["que"], ".merge.ancestral.bed", sep = ""))
+                              genomes["que"], ".merge.ancestral.pass.bed", sep = ""))
 
 
 # read in info
@@ -91,6 +91,7 @@ for(i in 1:length(genomes)){
                             strand = "*",
                             sData = netOutput$strand,
                             chainID = netOutput$chainID
+                            
     )
     seqlevels(netOutput.gr) <- chrInfo$chrom
     seqlengths(netOutput.gr) <- chrInfo$size
@@ -105,6 +106,8 @@ for(i in 1:length(genomes)){
     netOutput.gr$queRanges <- sortSeqlevels(netOutput.gr$queRanges)
     netOutput.gr <- sort(sortSeqlevels(netOutput.gr))
     
+    netOutput.gr$elementID = 1:length(netOutput.gr)
+    
     
     assign(x = paste(names(genomes)[i],c("Gap","Fill")[j],".gr", sep = ""), value = netOutput.gr)
     
@@ -113,13 +116,14 @@ for(i in 1:length(genomes)){
   
   # get ancestral
   ancDna <- read.table(file = ancDNAfiles[i], header = FALSE,
-                       col.names = c("seqnames", "start", "end"),
-                       colClasses = c("character", "integer", "integer"))
+                       col.names = c("seqnames", "start", "end","coverage"),
+                       colClasses = c("character", "integer", "integer","integer"))
   # convert to GRanges, move from 0 based to 1 based
   ancDna.gr <- GRanges(seqnames = ancDna$seqnames,
                        ranges = IRanges(start = ancDna$start,
                                         end = ancDna$end)
   )
+  anc.gr <- reduce(anc.gr)
   seqlevels(ancDna.gr) <- chrInfo$chrom
   seqlengths(ancDna.gr) <- chrInfo$size
   genome(ancDna.gr) <- genomes[i]

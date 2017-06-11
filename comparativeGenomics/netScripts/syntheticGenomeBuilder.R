@@ -75,15 +75,23 @@ if(!all(!overlapsAny(refGapAnc.gr, refGapNonAnc.gr))){
 # set up genomes
 queDel.gr <- refGapAnc.gr
 queDel.gr$type = "queDel"
+queDel.gr <- sort(queDel.gr)
+queDel.gr$featureID = 1:length(queDel.gr)
 
 refIns.gr <- refGapNonAnc.gr
 refIns.gr$type = "refIns"
+refIns.gr <- sort(refIns.gr)
+refIns.gr$featureID = 1:length(refIns.gr)
 
 queIns.gr <- switchGenome(queGapNonAnc.gr)
 queIns.gr$type = "queIns"
+queIns.gr <- sort(queIns.gr)
+queIns.gr$featureID = 1:length(queIns.gr)
 
 refDel.gr <- switchGenome(queGapAnc.gr)
 refDel.gr$type = "refDel"
+refDel.gr <- sort(refDel.gr)
+refDel.gr$featureID = 1:length(refDel.gr)
 
 mapped.gr <- c(refIns.gr,queDel.gr)
 mapped.gr <- sort(sortSeqlevels(mapped.gr))
