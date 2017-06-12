@@ -123,7 +123,7 @@ for(i in 1:length(genomes)){
                        ranges = IRanges(start = ancDna$start,
                                         end = ancDna$end)
   )
-  anc.gr <- reduce(anc.gr)
+  ancDna.gr <- reduce(ancDna.gr)
   seqlevels(ancDna.gr) <- chrInfo$chrom
   seqlengths(ancDna.gr) <- chrInfo$size
   genome(ancDna.gr) <- genomes[i]

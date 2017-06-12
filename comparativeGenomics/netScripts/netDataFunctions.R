@@ -16,10 +16,14 @@ rmSeqGapsFromNetOutput <- function(netOutput, seqGaps){
 }
 
 switchGenome <- function(queGenome.gr){
-  GRanges(mcols(queGenome.gr)$queRanges, 
-          queRanges = granges(queGenome.gr, use.mcols = FALSE), 
-          sData = mcols(queGenome.gr)$sData, 
-          chainID = mcols(queGenome.gr)$chainID)
+  
+  cName <- colnames(mcols(queGenome.gr))[colnames(mcols(queGenome.gr)) != "queRanges"]
+  
+  switched <- GRanges(mcols(queGenome.gr)$queRanges, 
+          queRanges = granges(queGenome.gr, use.mcols = FALSE)
+          )
+  mcols(switched)[,cName] <- mcols(queGenome.gr)[,cName]
+  return(switched)
 }
 
 
