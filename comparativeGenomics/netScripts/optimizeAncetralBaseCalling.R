@@ -41,14 +41,14 @@ abline(v = 6)
 
 # all the falsely identified bases
 
-
+layout(c(1,2))
 plot(  (cumsum(hg19.fills$V2)) , cumsum(hg19.newRep$V2), type = "n" ,
-       main = "hg19", xlim = c(0, 200e6))
+       main = "hg19")
 text((cumsum(hg19.fills$V2)) , cumsum(hg19.newRep$V2), hg19.fills$V1)
 
 plot(  (cumsum(mm10.fills$V2)) , cumsum(mm10.newRep$V2), type = "n" ,
-       main = "mm10", xlim = c(0, 200e6))
-text((cumsum(mm10.fills$V2)) , cumsum(mm10.newRep$V2), hg19.fills$V1)
+       main = "mm10")
+text((cumsum(mm10.fills$V2)) , cumsum(mm10.newRep$V2), hg19.fills$V1, col =2)
 
 
 plot(  (cumsum(hg19.fills$V2)/sum(hg19.fills$V2)) , cumsum(hg19.newRep$V2)/sum(hg19.newRep$V2) ,

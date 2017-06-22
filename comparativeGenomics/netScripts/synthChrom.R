@@ -10,8 +10,8 @@ devtools::source_url("http://raw.githubusercontent.com/ReubenBuck/RTN_domains_sc
 
 
 
-specRef = "mm10"
-specQue = "hg19"
+specRef = "hg19"
+specQue = "mm10"
 
 load(paste("Desktop/RTN_domains/R_objects/netsAnalysis/formattedNetData/",specRef,".",specQue,".netData.RData",sep = ""))
 load(paste("Desktop/RTN_domains/R_objects/netsAnalysis/stretchedGapAnnotation/",specRef,".stretch.RData", sep = ""))
@@ -26,13 +26,20 @@ all(!overlapsAny(refMissingGaps.gr, refGap.gr))
 mcols(refMissingGaps.gr)$queRanges <- GRanges(seqnames = "empty", ranges = IRanges(start = 1, end = 1))
 mcols(refMissingGaps.gr)$sData = "*"
 mcols(refMissingGaps.gr)$chainID = NA
+mcols(refMissingGaps.gr)$elementID = 1:length(refMissingGaps.gr)
 mcols(refMissingGaps.gr)$type = "missingGap"
+mcols(refMissingGaps.gr)$featureID = 1:length(refMissingGaps.gr)
+mcols(refMissingGaps.gr)$refRanges = granges(refMissingGaps.gr, use.mcols = FALSE)
+
 
 refSeqGaps.gr <- reduce(refSeqGaps.gr)
 mcols(refSeqGaps.gr)$queRanges <- GRanges(seqnames = "empty", ranges = IRanges(start = 1, end = 1))
 mcols(refSeqGaps.gr)$sData = "*"
 mcols(refSeqGaps.gr)$chainID = NA
+mcols(refSeqGaps.gr)$elementID = 1:length(refSeqGaps.gr)
 mcols(refSeqGaps.gr)$type = "seqGap"
+mcols(refSeqGaps.gr)$featureID = 1:length(refSeqGaps.gr)
+mcols(refSeqGaps.gr)$refRanges = granges(refSeqGaps.gr, use.mcols = FALSE)
 
 
 missingGenome.gr <- sort(c(refMissingGaps.gr, refSeqGaps.gr))

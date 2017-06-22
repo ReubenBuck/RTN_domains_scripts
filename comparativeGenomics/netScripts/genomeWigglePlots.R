@@ -71,7 +71,7 @@ df$queNetGrowth <- df$queIns-df$queDel
 
 
 colChoice <- c("refIns", "refDel", "queIns", "queDel", 
-               "gcContent", "fill", 
+               "gcContent", "fill",
                "refTurnover", "refNetGrowth", "queTurnover", "queNetGrowth")
 
 # next we get the df rolling means

@@ -106,6 +106,13 @@ rm(refDel.gr, queIns.gr, queDel.gr, refIns.gr)
 rm(refGapNonAnc.gr, refGapAnc.gr, queGapNonAnc.gr, queGapAnc.gr)
 rm(queFill.gr, queGap.gr, refFill.gr, refGap.gr, refFillGaps.gr, queFillGaps.gr)
 
+#mapped.gr <- mapped.gr[seqnames(mapped.gr) == "chr1"]
+#remapped.gr <- remapped.gr[seqnames(remapped.gr) == "chr1"]
+
+mapped.gr$refRanges <- granges(mapped.gr, use.mcols = FALSE)
+remapped.gr$refRanges <- granges(remapped.gr, use.mcols = FALSE)
+
+
 # calculate the total amount of shift required for each gap
 agg <- aggregate(x = width(remapped.gr$queRanges), by = list(as.character(granges(remapped.gr, use.mcols = FALSE))), FUN = sum)
 
@@ -209,6 +216,18 @@ stretchedRef.gr <- sort(sortSeqlevels(stretchedRef.gr))
 genome(stretchedRef.gr) <- paste("stretched.",genomes["ref"], sep = "")
 
 save(stretchedRef.gr, file = opt$output)
+
+
+
+# how many pices per gap
+
+#res <- data.frame(mcols(stretchedRef.gr)) %>% group_by(elementID) %>% summarise(n())
+
+
+# is there a way to keep the unstreched range
+# yes, we add the ref range to the end 
+#
+
 
 
 

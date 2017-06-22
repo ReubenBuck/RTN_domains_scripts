@@ -71,20 +71,36 @@ RefFillGC.grl <- GenomicRanges::split(RefFillGC.gr,f = RefFillGC.gr$synthBinID)
 # and extract the sequence and count GC content
 #seqlengths(RefFillGC.grl) <- seqlengths(wholeGenoSeq)
 genoSeq <- getSeq(wholeGenoSeq, RefFillGC.grl)
+
+
 genoSeq2 <- lapply(genoSeq,unlist)
 gcNumber <- lapply(FUN = letterFrequency, X = genoSeq2, "CG")
 totalWidth <- lapply(genoSeq2, length)
 gcContent <- unlist(gcNumber)/unlist(totalWidth)
 
 
-
-synthBin.gr$gcContent = as.numeric(NA)
+synthBin.gr$gcContent = 0
 synthBin.gr$fill = 0
 
 synthBin.gr[as.integer(names(RefFillGC.grl))]$gcContent <- as.numeric(gcContent)
 synthBin.gr[as.integer(names(RefFillGC.grl))]$fill <- as.numeric(totalWidth)
 
+
+
+
+# need to change motif searching, would be better to actually get locations and then expand them
+
+
 save(synthBin.gr, file = paste("Desktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/",specRef,".synthBin.RData", sep = ""))
+
+
+
+
+
+
+
+
+
 
 
 
