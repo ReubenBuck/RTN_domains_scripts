@@ -15,7 +15,13 @@ option_list = list(
   make_option(c("-o", "--output"), default=NA, type='character',
               help="stretched genome output, svaed as RData"),
   make_option(c("-s", "--shiftGenome"), default=NA, type='character',
-              help="newSynthRefShift genome file, requried coordiantes for genome expansion,saved as RData")
+              help="newSynthRefShift genome file, requried coordiantes for genome expansion,saved as RData"),
+  make_option(c("-R", "--useRepeats"), default=FALSE, type='logical', action = "store_true",
+              help="option to use repeats to assign gaps"),
+  make_option(c("-r", "--refRep"), default=NA, type='character',
+              help="reference genome new repeats, svaed as RData"),
+  make_option(c("-q", "--queRep"), default=NA, type='character',
+              help="query genome new repeats, svaed as RData")
 )
 opt = parse_args(OptionParser(option_list=option_list))
 
@@ -33,7 +39,19 @@ devtools::source_url("http://raw.githubusercontent.com/ReubenBuck/RTN_domains_sc
 
 load(opt$input)
 
-
+if(opt$useRepeats){
+  load(opt$refRep)
+  refRep.gr <- newRep.gr
+  refAncDna.gr <- gaps(refRep.gr)
+  refAncDna.gr <- refAncDna.gr[strand(refAncDna.gr) == "*"]
+  
+  
+  load(opt$queRep)
+  queRep.gr <- newRep.gr
+  queAncDna.gr <- gaps(queRep.gr)
+  queAncDna.gr <- queAncDna.gr[strand(queAncDna.gr) == "*"]
+  
+}
 
 
 

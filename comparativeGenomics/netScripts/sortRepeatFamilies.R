@@ -1,4 +1,6 @@
 #### alignments and repeats
+library(data.table)
+library(MASS)
 library(reshape)
 library(dplyr)
 library(GenomicRanges)
@@ -55,7 +57,10 @@ queRepAll.gr <- GRanges(seqnames = queRep$genoChr,
 
 queRepAll.gr <- queRepAll.gr[!(queRepAll.gr$repClass == "Simple_repeat" | 
                                  queRepAll.gr$repClass == "Satellite" |  
-                                 queRepAll.gr$repClass == "Low_complexity" )]
+                                 queRepAll.gr$repClass == "Low_complexity" |
+                                 queRepAll.gr$repClass == "Satellite/centr")]
+queRepAll.gr <- queRepAll.gr[width(queRepAll.gr) < 20000]
+
 
 queRepGap.gr <- queRepAll.gr[overlapsAny(queRepAll.gr, GenomicRanges::setdiff(queGap.gr, queAncDna.gr), type = "within")]
 queRepFill.gr <- queRepAll.gr[overlapsAny(queRepAll.gr, GenomicRanges::union(queAncDna.gr,queFill.gr), type = "within")]
@@ -87,7 +92,9 @@ dfRepQue$totalWidth <- dfRepQue$fill_width + dfRepQue$gap_width
 
 refRepAll.gr <- refRepAll.gr[!(refRepAll.gr$repClass == "Simple_repeat" | 
                                  refRepAll.gr$repClass == "Satellite" |  
-                                 refRepAll.gr$repClass == "Low_complexity" )]
+                                 refRepAll.gr$repClass == "Low_complexity"|
+                                 refRepAll.gr$repClass == "Satellite/centr" )]
+refRepAll.gr <- refRepAll.gr[width(refRepAll.gr) < 20000]
 
 refRepGap.gr <- refRepAll.gr[overlapsAny(refRepAll.gr, GenomicRanges::setdiff(refGap.gr, refAncDna.gr), type = "within")]
 refRepFill.gr <- refRepAll.gr[overlapsAny(refRepAll.gr, GenomicRanges::union(refAncDna.gr,refFill.gr), type = "within")]
@@ -129,7 +136,7 @@ names(familyGapOL) <- dfRepRef$repName
 dfRefAllLda$gapOL <-  familyGapOL[dfRefAllLda$repName]
 
 
-fit <- lda(data = rbind(dfQueAllLda, dfRefAllLda), type ~ perDiv + gapOL)
+#fit <- lda(data = rbind(dfQueAllLda, dfRefAllLda), type ~ perDiv + gapOL)
 
 fitRef <- lda(data = dfRefAllLda, type ~ perDiv + gapOL)
 fitQue <- lda(data = dfQueAllLda, type ~ perDiv + gapOL)
@@ -141,19 +148,19 @@ fitQue <- lda(data = dfQueAllLda, type ~ perDiv + gapOL)
 
 
 
-
+pdf(file = "~/Desktop/RTN_domains/RTN_domain_plots/netGainLoss/sortRepeats/sortRepeats.pdf", width = 12, height = 6)
 
 # we want to see if there is a difference between the divergence levels for each repeat
 layout(matrix(1:2, nrow=1))
-par(mar=c(5,1,1,1), oma = c(2,5,2,2))
+par(mar=c(5,5,2,2), oma = c(1,1,1,1))
 for(i in c("Ref","Que")){
 repSum <- get(paste("dfRep",i, sep = ""))
 
 plot(repSum$gap_mid50, repSum$gap_width/repSum$totalWidth, pch = 16, cex = .3,
-     ylab = "gap percentage overlap",
-     xlab = "percentage divergence from consensus", type = "n", xlim = c(0,40),
-     main = genomes[tolower(i)])
-
+     ylab = "Overlap with non-ancestral sequence (%)",
+     xlab = "Divergence from consensus (%)", type = "n", xlim = c(0,40),
+     main = genomes[tolower(i)], yaxt = "n")
+axis(side = 2,at = seq(0,1,.2), labels = seq(0,1,.2) *100)
 
 rect(xleft = repSum$gap_bot25,
      xright = repSum$gap_top25,
@@ -161,36 +168,28 @@ rect(xleft = repSum$gap_bot25,
      ybottom = (repSum$gap_width/repSum$totalWidth) - (repSum$gap_width/5e8),
      col = scales::alpha("black", .2), border = NA)
 
-
 rect(xleft = repSum$fill_bot25,
      xright = repSum$fill_top25,
      ytop = ( (repSum$gap_width/repSum$totalWidth)) + (repSum$fill_width/5e8),
      ybottom = ( (repSum$gap_width/repSum$totalWidth)) - (repSum$fill_width/5e8),
      col = scales::alpha("red", .2), border = NA)
 
-res <- ldaLine(fit)
-abline( res[c("intercept", "slope")], lty = 2, col = 3)
+#res <- ldaLine(fit)
+#abline( res[c("intercept", "slope")], lty = 2, col = 3)
 res <- ldaLine(get(paste("fit",i, sep = "")))
-abline( res[c("intercept", "slope")], lty = 2)
+abline( res[c("intercept", "slope")], lty = 2, lwd = 2)
+
+legend("bottomleft", legend = c("Non-ancestral", "Ancestral"), 
+       col = c(scales::alpha("black", .2),scales::alpha("red", .2)),
+       bty = "n", pch = 15)
+
 
 }
 
-
-# compare our speceis specifc classifier to general classifier by looking at overlapping repeat names
-# what ever gets the best result we can go with
-
-# maybe repeat name should have been a variable 
-# especially in the shared dataset 
-
-# get the repeat family mean
+dev.off()
 
 
-
-# based on family name and percent divergence, we can place repeats into new/old groups
-
-# count the number of new sequences that overlap
-
-# joint and indivdual
+# 
 dfRepRefBoth <- dfRefAll %>% 
   group_by(repName) %>% 
   summarise(perDiv = mean(perDiv), width = sum(width))
@@ -231,30 +230,76 @@ sum(queSharedName$width[queSharedName$class != refSharedName$class])
 
 
 
-queClass[intersect(rownames(queClass), rownames(refClass)), ] %>%
+# four groups 
+# with different names
+# is this important
+# does it take too long to explain
+
+
+queShareFam <- queClass[intersect(rownames(queClass), rownames(refClass)), ] %>%
   group_by(class) %>%
-  summarise( width = sum(width))
+  summarise( width = sum(width), n = n())
 
 
-refClass[intersect(rownames(queClass), rownames(refClass)), ] %>%
+queNewFam <- queClass[setdiff(rownames(queClass), rownames(refClass)), ] %>%
   group_by(class) %>%
-  summarise( width = sum(width))
+  summarise( width = sum(width), n = n())
+
+queNameTable <- data.frame(matrix(NA, nrow = 2, ncol = 2,
+                       dimnames = list(c("nonSharedFamily","sharedFamily"), 
+                                       c("nonAncestral", "ancestral"))))
+queNameTable <- list(width = queNameTable, n = queNameTable)
+
+queNameTable$width["nonSharedFamily", "nonAncestral"] <- queNewFam[2,2]
+queNameTable$width["sharedFamily", "nonAncestral"] <- queShareFam[2,2]
+queNameTable$width["nonSharedFamily", "ancestral"] <- queNewFam[1,2]
+queNameTable$width["sharedFamily", "ancestral"] <- queShareFam[1,2]
+
+queNameTable$n["nonSharedFamily", "nonAncestral"] <- queNewFam[2,3]
+queNameTable$n["sharedFamily", "nonAncestral"] <- queShareFam[2,3]
+queNameTable$n["nonSharedFamily", "ancestral"] <- queNewFam[1,3]
+queNameTable$n["sharedFamily", "ancestral"] <- queShareFam[1,3]
 
 
-queClass[setdiff(rownames(queClass), rownames(refClass)), ] %>%
+
+
+
+refShareFam <- refClass[intersect(rownames(queClass), rownames(refClass)), ] %>%
   group_by(class) %>%
-  summarise( width = sum(width))
+  summarise( width = sum(width), n = n())
 
-
-refClass[setdiff(rownames(refClass), rownames(queClass)), ] %>%
+refNewFam <- refClass[setdiff(rownames(refClass), rownames(queClass)), ] %>%
   group_by(class) %>%
-  summarise( width = sum(width))
+  summarise( width = sum(width), n = n())
+
+refNameTable <- data.frame(matrix(NA, nrow = 2, ncol = 2,
+                                  dimnames = list(c("nonSharedFamily","sharedFamily"), 
+                                                  c("nonAncestral", "ancestral"))))
+
+refNameTable <- list(width = refNameTable, n = refNameTable)
+
+refNameTable$width["nonSharedFamily", "nonAncestral"] <- refNewFam[2,2]
+refNameTable$width["sharedFamily", "nonAncestral"] <- refShareFam[2,2]
+refNameTable$width["nonSharedFamily", "ancestral"] <- refNewFam[1,2]
+refNameTable$width["sharedFamily", "ancestral"] <- refShareFam[1,2]
+
+refNameTable$n["nonSharedFamily", "nonAncestral"] <- refNewFam[2,3]
+refNameTable$n["sharedFamily", "nonAncestral"] <- refShareFam[2,3]
+refNameTable$n["nonSharedFamily", "ancestral"] <- refNewFam[1,3]
+refNameTable$n["sharedFamily", "ancestral"] <- refShareFam[1,3]
 
 
-# a significan tnumber of familes active during divergence
-# families that are not shared but are 
+refNameTable$width/1e6
+queNameTable$width/1e6
 
-# shared famileis that overlap gaps are new
+
+refNameTable$n
+queNameTable$n
+
+# sequeces potentially derived from repeats active during divergence.
+
+
+
 
 
 refShare <- refClass[intersect(rownames(queClass), rownames(refClass)), ]
@@ -264,71 +309,53 @@ queShare <- queClass[intersect(rownames(queClass), rownames(refClass)), ]
 queNonShare <- queClass[setdiff(rownames(queClass), rownames(refClass)), ]
 
 
+pdf(file = "~/Desktop/RTN_domains/RTN_domain_plots/netGainLoss/sortRepeats/repeatDivergence.pdf", width = 12, height = 6 )
+layout(matrix(c(1,2),nrow =1))
+par(mar=c(5,5,2,2), oma = c(1,1,1,1))
+
 plot(density(dfRefAll$perDiv[
-  dfRefAll$repName %in% rownames(refShare[refShare$class == "gap",])]))
+  dfRefAll$repName %in% rownames(refShare[refShare$class == "gap",])]),
+  main = "hg19", ylim = c(0,.13), xlim = c(0,50),
+  col = 2, xlab = "Divergence from consensus (%)", lwd = 2)
 lines(density(dfRefAll$perDiv[
-  dfRefAll$repName %in% rownames(refShare[refShare$class == "fill",])]), col= 2)
+  dfRefAll$repName %in% rownames(refShare[refShare$class == "fill",])]), col = 4, lwd = 2)
 lines(density(dfRefAll$perDiv[
-  dfRefAll$repName %in% rownames(refNonShare[refNonShare$class == "gap",])]), col= 3)
+  dfRefAll$repName %in% rownames(refNonShare[refNonShare$class == "gap",])]), col= 1, lwd = 2)
 #lines(density(dfRefAll$perDiv[
 #  dfRefAll$repName %in% rownames(refNonShare[refNonShare$class == "fill",])]), col= 4)
+legend("topright", bty = "n",
+       legend = c("recent",
+                  "divergence",
+                  "ancestor"), 
+       title = "Peroid of activity",
+       col = c(1,2,4), lty = 1, lwd = 2)
+
+
 
 
 plot(density(dfQueAll$perDiv[
-  dfQueAll$repName %in% rownames(queShare[queShare$class == "gap",])]))
+  dfQueAll$repName %in% rownames(queShare[queShare$class == "gap",])]),
+  main = "mm10", ylim = c(0,.13), xlim = c(0,50),
+  col = 2, xlab = "Divergence from consensus (%)", lwd = 2)
 lines(density(dfQueAll$perDiv[
-  dfQueAll$repName %in% rownames(queShare[queShare$class == "fill",])]), col= 2)
+  dfQueAll$repName %in% rownames(queShare[queShare$class == "fill",])]), col = 4, lwd = 2)
 lines(density(dfQueAll$perDiv[
-  dfQueAll$repName %in% rownames(queNonShare[queNonShare$class == "gap",])]), col= 3)
+  dfQueAll$repName %in% rownames(queNonShare[queNonShare$class == "gap",])]), col = 1, lwd = 2)
 #lines(density(dfQueAll$perDiv[
 #  dfQueAll$repName %in% rownames(queNonShare[queNonShare$class == "fill",])]), col= 4)
 
+legend("topright", bty = "n",
+       legend = c("recent",
+                  "divergence",
+                  "ancestor"), 
+       title = "Peroid of activity",
+       col = c(1,2,4), lty = 1, lwd = 2)
+
+dev.off()
 
 
 
-# there are four classes of family
-# new
-# shared name, new distribtuion
-# old
-# new name, old distribution
-
-# we need to define wheater a particular repeat belongs to a specifc family or not
-hist((dfRefAll$perDiv[dfRefAll$repName %in% rownames(refShare[refShare$class == "fill",])]), col= 2, breaks = 50)
-
-
-
-
-# now we have divergence from consensus
-# we have a few inbetween families 
-
-# now to split families into new and old and make comparison
-
-
-
-# how to draw a straight line through the data
-
-
-
-refNewShare.gr <- refRepAll.gr[refRepAll.gr$repName %in% rownames(refShare[refShare$class == "gap",])]
-refNew.gr <- refRepAll.gr[refRepAll.gr$repName %in% rownames(refNonShare[refNonShare$class == "gap",])]
-
-
-
-sum(width(intersect(refNewShare.gr, 
-                    GenomicRanges::setdiff(refGap.gr, refAncDna.gr))))
-
-sum(width(intersect(refNewShare.gr, 
-                    GenomicRanges::intersect(refGap.gr, refAncDna.gr))))
-
-
-sum(width(intersect(refNew.gr, 
-                    GenomicRanges::setdiff(refGap.gr, refAncDna.gr))))
-
-sum(width(intersect(refNew.gr, 
-                    GenomicRanges::intersect(refGap.gr, refAncDna.gr))))
-
-
-# now it is something like a 5% chance our data is misasigned 
+# method overlap
 
 newRep.gr <- refRepAll.gr[refRepAll.gr$repName %in% rownames(refClass[refClass$class == "gap",])]
 repIns <- GenomicRanges::intersect(refGap.gr, newRep.gr)
@@ -349,69 +376,102 @@ conTable["repDel", "ancIns"] <- sum(width(GenomicRanges::intersect(repDel, ancIn
 conTable["repIns", "ancDel"] <- sum(width(GenomicRanges::intersect(repIns, ancDel)))
 conTable["repDel", "ancDel"] <- sum(width(GenomicRanges::intersect(repDel, ancDel)))
 
-# looks like methods agree 80% of the time
-# many of the "insertions" we found based on ancestral method, do not overlap repeats
-# it is probably likly that they are small, ie 10bp
-# in addition many of the deleted regions did not overlap repeats. 
 
-# Of the shared families, are the same ones getting the same classification
+refConTable <- conTable / 1e6
 
 
 
 
-library(MASS)
-data(iris)
-# fit model
-fit <- lda(Species~., data=iris)
+newRep.gr <- queRepAll.gr[queRepAll.gr$repName %in% rownames(queClass[queClass$class == "gap",])]
+repIns <- GenomicRanges::intersect(queGap.gr, newRep.gr)
+repDel <- GenomicRanges::setdiff(queGap.gr, newRep.gr)
 
-# summarize the fit
-summary(fit)
-# make predictions
-predictions <- predict(fit, iris[,1:4])$class
-# summarize accuracy
-table(predictions, iris$Species)
+ancIns <- GenomicRanges::setdiff(queGap.gr, queAncDna.gr)
+ancDel <- GenomicRanges::intersect(queGap.gr, queAncDna.gr)
 
 
+gapSum <- sum(width(queGap.gr))
 
-# to use lda we have two groups
-# but they are weighted 
-dfQueAllLda <- dfQueAll
-familyGapOL <- dfRepQue$gap_width / dfRepQue$totalWidth
-names(familyGapOL) <- dfRepQue$repName
-dfQueAllLda$gapOL <-  familyGapOL[dfQueAllLda$repName]
+conTable <- matrix(data = NA, nrow = 2, ncol = 2, 
+                   dimnames = list(c("repIns", "repDel"),
+                                   c("ancIns", "ancDel")))
 
-dfRefAllLda <- dfRefAll
-familyGapOL <- dfRepRef$gap_width / dfRepRef$totalWidth
-names(familyGapOL) <- dfRepRef$repName
-dfRefAllLda$gapOL <-  familyGapOL[dfRefAllLda$repName]
+conTable["repIns", "ancIns"] <- sum(width(GenomicRanges::intersect(repIns, ancIns)))
+conTable["repDel", "ancIns"] <- sum(width(GenomicRanges::intersect(repDel, ancIns)))
+conTable["repIns", "ancDel"] <- sum(width(GenomicRanges::intersect(repIns, ancDel)))
+conTable["repDel", "ancDel"] <- sum(width(GenomicRanges::intersect(repDel, ancDel)))
 
 
-fit <- lda(data = rbind(dfQueAllLda, dfRefAllLda), type ~ perDiv + gapOL)
-
-# we do it based on families, 
-# fit them according to their percent overlap
-# or add the percent family gap overlap to the data
+queConTable <- conTable / 1e6
 
 
+queConTable
+refConTable
 
 
-ldaLine <- function(fit){
-  gmean <- fit$prior%*%fit$means
-  const <- drop(gmean%*%fit$scaling)
-  
-  slope <- -fit$scaling[1]/fit$scaling[2]
-  intercept <- const/fit$scaling[2]
-  
-  res <- c(intercept, slope)
-  names(res) <- c("intercept", "slope")
-  return(res)
-}
+# maybe classify as SINE, LINE, LTR, DNA
 
 
-res <- ldaLine(fit)
+# classify repeats here and save the opjects, new, old, div
+
+refRepAll.gr$time <- as.character(NA)
+
+refRepAll.gr[refRepAll.gr$repName %in% rownames(refShare[refShare$class == "gap",])]$time <- "share;new"
+refRepAll.gr[refRepAll.gr$repName %in% rownames(refShare[refShare$class == "fill",])]$time <- "share;old"
+refRepAll.gr[refRepAll.gr$repName %in% rownames(refNonShare[refNonShare$class == "gap",])]$time <- "uniq;new"
+refRepAll.gr[refRepAll.gr$repName %in% rownames(refNonShare[refNonShare$class == "fill",])]$time <- 'uniq;old'
+
+table(refRepAll.gr[is.na(refRepAll.gr$time)]$repName)
+
+refRepAll.gr <- refRepAll.gr[!is.na(refRepAll.gr$time)]
+
+
+seqlevels(refRepAll.gr) <- refChrInfo$chrom
+seqlengths(refRepAll.gr) <- refChrInfo$size
+refRepAll.gr <- sort(sortSeqlevels(refRepAll.gr))
+genome(refRepAll.gr) <- genomes["ref"]
 
 
 
+queRepAll.gr$time <- as.character(NA)
+
+queRepAll.gr[queRepAll.gr$repName %in% rownames(queShare[queShare$class == "gap",])]$time <- "share;new"
+queRepAll.gr[queRepAll.gr$repName %in% rownames(queShare[queShare$class == "fill",])]$time <- "share;old"
+queRepAll.gr[queRepAll.gr$repName %in% rownames(queNonShare[queNonShare$class == "gap",])]$time <- "uniq;new"
+queRepAll.gr[queRepAll.gr$repName %in% rownames(queNonShare[queNonShare$class == "fill",])]$time <- 'uniq;old'
+
+table(queRepAll.gr[is.na(queRepAll.gr$time)]$repName)
+
+queRepAll.gr <- queRepAll.gr[!is.na(queRepAll.gr$time)]
 
 
+seqlevels(queRepAll.gr) <- queChrInfo$chrom
+seqlengths(queRepAll.gr) <- queChrInfo$size
+queRepAll.gr <- sort(sortSeqlevels(queRepAll.gr))
+genome(queRepAll.gr) <- genomes["que"]
+
+
+
+
+
+allRep.gr <- refRepAll.gr
+save(allRep.gr, file = paste("~/Desktop/RTN_domains/R_objects/rmskTables/",genomes["ref"],
+                      "/",genomes["ref"],"NewOldFamily.RData", sep = "")
+)
+
+newRep.gr <- refRepAll.gr[grep("new",refRepAll.gr$time)]
+save(newRep.gr, file = paste("~/Desktop/RTN_domains/R_objects/rmskTables/",genomes["ref"],
+                             "/",genomes["ref"],"New.RData", sep = "")
+)
+
+
+allRep.gr <- queRepAll.gr
+save(allRep.gr, file = paste("~/Desktop/RTN_domains/R_objects/rmskTables/",genomes["que"],
+                             "/",genomes["que"],"NewOldFamily.RData", sep = "")
+)
+
+newRep.gr <- queRepAll.gr[grep("new",queRepAll.gr$time)]
+save(newRep.gr, file = paste("~/Desktop/RTN_domains/R_objects/rmskTables/",genomes["que"],
+                             "/",genomes["que"],"New.RData", sep = "")
+)
 
