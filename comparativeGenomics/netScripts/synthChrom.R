@@ -10,8 +10,8 @@ devtools::source_url("http://raw.githubusercontent.com/ReubenBuck/RTN_domains_sc
 
 
 
-specRef = "hg19"
-specQue = "mm10"
+specRef = "mm10"
+specQue = "hg19"
 
 load(paste("Desktop/RTN_domains/R_objects/netsAnalysis/formattedNetData/",specRef,".",specQue,".netData.RData",sep = ""))
 load(paste("Desktop/RTN_domains/R_objects/netsAnalysis/stretchedGapAnnotation/",specRef,".stretch.RData", sep = ""))

@@ -18,9 +18,9 @@ option_list = list(
               help="newSynthRefShift genome file, requried coordiantes for genome expansion,saved as RData"),
   make_option(c("-R", "--useRepeats"), default=FALSE, type='logical', action = "store_true",
               help="option to use repeats to assign gaps"),
-  make_option(c("-r", "--refRep"), default=NA, type='character',
+  make_option(c("-r", "--refRep"), default=NULL, type='character',
               help="reference genome new repeats, svaed as RData"),
-  make_option(c("-q", "--queRep"), default=NA, type='character',
+  make_option(c("-q", "--queRep"), default=NULL, type='character',
               help="query genome new repeats, svaed as RData")
 )
 opt = parse_args(OptionParser(option_list=option_list))
@@ -40,6 +40,7 @@ devtools::source_url("http://raw.githubusercontent.com/ReubenBuck/RTN_domains_sc
 load(opt$input)
 
 if(opt$useRepeats){
+  print("using repeats!!!!!!!!!")
   load(opt$refRep)
   refRep.gr <- newRep.gr
   refAncDna.gr <- gaps(refRep.gr)
