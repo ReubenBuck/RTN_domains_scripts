@@ -143,6 +143,38 @@ t(round(filterTable, digits = 1))
 # we have 2.5 Gb of gapped sequnce we can assign to four catagories
 
 
+refNonRBH <- data.frame(union(refNonRBHFill.gr, refNonRBHGap.gr))[,1:3]
+queNonRBH <- data.frame(union(queNonRBHFill.gr, queNonRBHGap.gr))[,1:3]
+
+
+
+write.table(refNonRBH,file = "~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/missingData/hg19nonRBH.bed", 
+            quote = FALSE,sep = "\t",row.names = FALSE,col.names = FALSE)
+
+write.table(queNonRBH,file = "~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/missingData/mm10nonRBH.bed", 
+            quote = FALSE,sep = "\t",row.names = FALSE,col.names = FALSE)
+
+
+write.table(data.frame(refNonNetGap)[,1:3],
+            file = "~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/missingData/hg19nonNet.bed", 
+            quote = FALSE,sep = "\t",row.names = FALSE,col.names = FALSE)
+
+write.table(data.frame(queNonNetGap)[,1:3],
+            file = "~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/missingData/mm10nonNet.bed", 
+            quote = FALSE,sep = "\t",row.names = FALSE,col.names = FALSE)
+
+
+
+
+
+
+
+union(union(queNonNetGap, queNonRBHFill.gr), queNonRBHGap.gr)
+
+
+
+
+
 
 
 sum(width(GenomicRanges::intersect(refNonNetGap, refAncDna.gr)))/1e6

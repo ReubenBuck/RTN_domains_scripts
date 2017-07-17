@@ -69,6 +69,41 @@ legend("bottomright", c("hg19 coverage", "mm10 coverage"), col = c(1,2), lty = 1
 # the percentage of false hits vs the percentage of true hits
 
 
+# type 1 error  
+# type 2 error
+
+pdf(file = "Desktop/RTN_domains/RTN_domain_plots/netGainLoss/gapAssigningDist/optimiseOutGroupCov.pdf")
+y =  (cumsum(hg19.newRep$V2)/sum(hg19.newRep$V2))
+x =  (cumsum(hg19.fills$V2)/sum(hg19.fills$V2))
+plot( x, y ,type = "n",
+      ylab  = "Type 1 errors (cumulative proportion)",
+      xlab  = "Type 2 errors (proportional increase)",
+      ylim = c(0,1),
+      xlim = c(0,1))
+
+text(x,y, cex = c(rep(.7,5), 1.3, rep(.7, 32 - 6))  )
+
+y =  (cumsum(mm10.newRep$V2)/sum(mm10.newRep$V2))
+x =  (cumsum(mm10.fills$V2)/sum(mm10.fills$V2))
+text(x,y, cex = c(rep(.7,3), 1.3, rep(.7, 38 - 6)) , col = 2 )
+
+legend("bottomright", legend = c("hg19","mm10"), fill = c(1,2), bty = "n")
+
+dev.off()
+# looking for the best trade of in type 2 errors 
+
+
+# percentage of type 1 errors
+
+# increase in type 2 error
+
+
+
+
+
+
+
+
 
 
 
