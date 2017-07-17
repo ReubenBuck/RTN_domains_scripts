@@ -1,0 +1,45 @@
+digraph pipeline {
+        //my data
+        genome[label = "species genomes", shape = "box"]
+        repeatHS[label = "RTN hotspots", shape = "box"]
+        
+
+        comparbaleHS[label = "comparable RTN hotspots", shape = "box"]
+        conRTNhotspots[label = "conserved RTN hotspots", shape = box]
+        difRTNhotspots[label = "non-conserved RTN hotspots", shape = box]
+
+
+        //my processes/scripts
+        getGaps[label = "", shape = none]
+        getFills[label = "identify retrotransposons (RTNs)", shape = none]
+
+
+        processRmsk[label = "sort families\ninto groups", shape = none]
+        findHS[label = "identify RTN\naccumulation hotspots", shape = none]
+
+
+        liftover[label = "lift-over", shape = none]
+        intersectSpeceis[label = "intersect each species\nRTN hotspots", shape = none]
+
+        overlapping[label = "find overlapping\nRTN hotspots", shape = none]
+        nonOverlapping[label = "find non-overlapping\nRTN hotspots", shape = none]
+
+        //graph
+        genome -> rmsk
+        rmsk -> processRmsk
+        processRmsk -> findHS
+        findHS -> repeatHS
+
+
+        repeatHS -> liftover
+
+        liftover -> comparbaleHS
+        comparbaleHS -> intersectSpeceis
+
+        intersectSpeceis -> overlapping
+        intersectSpeceis -> nonOverlapping
+
+        nonOverlapping -> difRTNhotspots
+        overlapping -> conRTNhotspots
+
+}
