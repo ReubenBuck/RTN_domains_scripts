@@ -20,23 +20,29 @@ rownames(hg19Z) <- c("hg19.hg19.gain", "hg19.hg19.loss", "hg19.mm10.gain", "hg19
 
 
 # generate col order based on clustering
-hg19Z <- hg19Z[,colnames(hg19Z) != "dnaseActivity"]
-mm10Z <- mm10Z[,colnames(mm10Z) != "dnaseActivity"]
+hg19Z <- hg19Z[,!(colnames(hg19Z) == "dnaseActivity" | colnames(hg19Z) == "L1Motif" | colnames(hg19Z) == "prdm9Motif" | colnames(hg19Z) == "ctcfMotif")]
+mm10Z <- mm10Z[,!(colnames(mm10Z) == "dnaseActivity" | colnames(mm10Z) == "L1Motif" | colnames(mm10Z) == "prdm9Motif" | colnames(mm10Z) == "ctcfMotif")]
+colName <- c("DNase1 HS peaks", "LADs","Exons", "Introns", 
+             "Ancient elements", "Lineage-specifc L1s", "Lineage-specifc SINEs",
+             "Ancestral L1s","Recombination hotspots", "CpG islands",
+             "GC content","Recombination rate")
 
 zAll <- rbind(hg19Z,mm10Z)
 
+# sorting
 hClust <- hclust(dist(t(zAll)))
 mm10Z <- mm10Z[,hClust$order]
 hg19Z <- hg19Z[,hClust$order]
 
+colName <- colName[hClust$order]
 
 
 # get proper col names
 
-colName <- c("PRDM9 binding motif", "CTCF binding motif","CpG islands","Exons",
-             "Lineage-specifc SINEs","LADs", "L1 insertion motif", "Lineage-specifc L1s", 
-             "Ancestral L1s", "Ancient elements", "Introns", "Recombination hotspots", 
-             "Recombination rate", "DNase1 HS peaks", "GC content")
+
+
+
+
 
 # order mouse similar to human
 mm10Z <- mm10Z[c("mm10.hg19.gain", "mm10.hg19.loss","mm10.mm10.gain", "mm10.mm10.loss"),]

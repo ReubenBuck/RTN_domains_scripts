@@ -19,8 +19,10 @@ option_list = list(
               help="query genome", metavar="character"),
   make_option(c("-s", "--synFile"), type="character", default=NA, 
               help="output from synBuildConvert.bash", metavar="character"),
-  make_option(c("-b", "--bedFile"), type="character", default="none", 
-              help="bed file to plot above chromosomes, if no bed file use 'none'", metavar="character"),
+  make_option(c("-b", "--bedFile1"), type="character", default="none", 
+              help="bed file to plot above chromosomes in black, if no bed file use 'none'", metavar="character"),
+  make_option(c("-B", "--bedFile2"), type="character", default="none", 
+              help="bed file to plot above chromosomes in grey, if no bed file use 'none'", metavar="character"),
   make_option(c("-o", "--outPutPDF"), type="character", default="./out.pdf", 
               help="pdf output figure", metavar="character")
 ) 
@@ -42,10 +44,13 @@ if(ext != "pdf"){
 library(RMySQL)
 library(ggsci)
 
-#opt$que = "hg19"
-#opt$ref = "mm10"
-#opt$synFile = "~/Desktop/RTN_domains/data/synBuilder/mm10.hg19.highResSyn.txt"
-#opt$bedFile="none"
+opt$ref = "hg19"
+opt$que = "mm10"
+opt$synFile = "~/Desktop/RTN_domains/data/synBuilder/hg19.mm10.highResSyn.txt"
+opt$bedFile1="~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/missingData/hg19nonNet.bed"
+opt$bedFile2="~/Desktop/RTN_domains/data/comparativeGenomics/netAlignment/missingData/hg19nonRBH.bed"
+opt$outPutPDF = "~/Desktop/hg19syn.pdf"
+
 
 ref = opt$ref
 que = opt$que
@@ -90,14 +95,19 @@ seqGaps$chrom <- factor(seqGaps$chrom, levels = levels(refChr$chrom))
 
 
 # get bed data
-if(opt$bedFile != "none"){
-  bed = read.table(opt$bedFile, header = FALSE)
-  bed <- bed[,1:3]
-  colnames(bed) <- c("chr", "start", "end")
-  bed$chr = factor(bed$chr , levels = levels(refChr$chrom))
+if(opt$bedFile1 != "none"){
+bed1 = read.table(opt$bedFile1, header = FALSE)
+  bed1 <- bed1[,1:3]
+  colnames(bed1) <- c("chr", "start", "end")
+  bed1$chr = factor(bed1$chr , levels = levels(refChr$chrom))
 }
 
-
+if(opt$bedFile2 != "none"){
+  bed2 = read.table(opt$bedFile2, header = FALSE)
+  bed2 <- bed2[,1:3]
+  colnames(bed2) <- c("chr", "start", "end")
+  bed2$chr = factor(bed2$chr , levels = levels(refChr$chrom))
+}
 
 # generate synteny plot
 pdf(file = opt$outPutPDF, height = 9,width = 6)
@@ -131,12 +141,24 @@ rect(ytop = (as.integer(seqGaps$chrom) * 3) -1  ,
 )
 
 # plot bed data
-if(opt$bedFile != "none"){
-  rect(ytop = (as.integer(bed$chr) * 3) -2  ,
-       ybottom  = (as.integer(bed$chr)*3) -3, 
-       xleft = bed$start, 
-       xright = bed$end,
+if(opt$bedFile1 != "none"){
+  bed1 <- bed1[bed1$end - bed1$start > 9999,]
+  rect(ytop = (as.integer(bed1$chr) * 3) -2  ,
+       ybottom  = (as.integer(bed1$chr)*3) -2.5, 
+       xleft = bed1$start, 
+       xright = bed1$end,
        col = "black",
+       border = NA
+  )
+}
+
+if(opt$bedFile2 != "none"){
+  bed2 <- bed2[bed2$end - bed2$start > 9999,]
+  rect(ytop = (as.integer(bed2$chr) * 3) -1  ,
+       ybottom  = (as.integer(bed2$chr)*3) -.5, 
+       xleft = bed2$start, 
+       xright = bed2$end,
+       col = "red",
        border = NA
   )
 }
