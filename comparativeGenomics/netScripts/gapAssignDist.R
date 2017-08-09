@@ -169,12 +169,15 @@ polygon(Mm10InsRep$mids, Mm10InsRep$density, col = scales::alpha(pal[3],.2), bor
 
 par(mar = c(5,5,0,0))
 contour(densHg19Ins, add=FALSE, col = scales::alpha(pal[1],.5), 
+        levels = seq(from = 2e-10, to = max(densHg19Ins$z), by = 4e-10),
         xlim = lims, ylim = lims,drawlabels = FALSE, lwd = 2,
         ylab = "Ancestral elements (bp)", xlab = "Recent transposons (bp)")
 grid()
-contour(densHg19Del, add = TRUE, col = scales::alpha(pal[2],.5),drawlabels = FALSE, lwd = 2)
-contour(densMm10Ins, add = TRUE, col = scales::alpha(pal[3],.5),drawlabels = FALSE, lwd = 2)
-contour(densMm10Del, add = TRUE, col = scales::alpha(pal[4],.5),drawlabels = FALSE, lwd = 2)
+contour(densHg19Del, add = TRUE, col = scales::alpha(pal[2],.5),drawlabels = FALSE, lwd = 2,levels = seq(from = 2e-10, to = max(densHg19Del$z), by = 1.6e-9))
+contour(densMm10Ins, add = TRUE, col = scales::alpha(pal[3],.5),drawlabels = FALSE, lwd = 2,levels = seq(from = 2e-10, to = max(densMm10Ins$z), by = 4e-10))
+contour(densMm10Del, add = TRUE, col = scales::alpha(pal[4],.5),drawlabels = FALSE, lwd = 2,levels = seq(from = 2e-10, to = max(densMm10Del$z), by = 4e-10))
+
+
 
 par(mar=c(1.5,1.5,2,2))
 plot.new()

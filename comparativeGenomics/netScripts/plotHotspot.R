@@ -5,8 +5,8 @@ library(GenomicRanges)
 
 rm(list = ls())
 
-specRef = "mm10"
-specQue = "hg19"
+specRef = "hg19"
+specQue = "mm10"
 
 # get dta
 load(paste("~/Desktop/RTN_domains/R_objects/netsAnalysis/hotspots/", specRef, "repNoRep.RData", sep = ""))
@@ -56,7 +56,7 @@ chrAll <- chrAll[-grep("_", chrAll)]
 
 chrAll <- chrAll[chrAll!="chrM"]
 chrAll <- chrAll[chrAll!="chrY"]
-
+chrAll <- chrAll[chrAll!="chrX"]
 
 
 # get important ranges
@@ -88,6 +88,8 @@ gapOL <- gapOL/200000
 
 sigOL <- matrix(NA,nrow = 4, ncol = 4,
                 dimnames = list(gapType,gapType))
+EOL <- matrix(NA,nrow = 4, ncol = 4,
+              dimnames = list(gapType,gapType))
 for(i in gapType){
   for(j in gapType){
     if(i == j)next
@@ -96,16 +98,18 @@ for(i in gapType){
         c(gapOL[i,j], 
           gapOL[i,i] - gapOL[i,j]),
         c(gapOL[j,j] - gapOL[i,j], 
-          length(synthBinNorm.gr) - gapOL[i,i] - gapOL[j,j] + gapOL[i,j])
+          length(synthBinNorm.gr[seqnames(synthBinNorm.gr) %in% chrAll]) - gapOL[i,i] - gapOL[j,j] + gapOL[i,j])
       )
     )
     dNames <- list(c("sig", "norm"), c("sig", "norm"))
     names(dNames) <- c(i,j)
     dimnames(x)  <- dNames
     sigOL[i,j] <- fisher.test(x)$p.value
+    EOL[i,j] <- round(fisher.test(x)$estimate,2)
   }
 }
 
+# expected overlap
 
 olMat <-round(gapOL/diag(gapOL) * 100, digits = 2)
 olMat[sigOL < .05 & sigOL > .01 & !is.na(sigOL)] <- paste(olMat[sigOL < .05 & sigOL > .01 & !is.na(sigOL)], "*")
@@ -113,10 +117,17 @@ olMat[sigOL < .01 & !is.na(sigOL)] <- paste(olMat[sigOL < .01 & !is.na(sigOL)], 
 olMat[olMat == "100"] <- ""
 dimnames(olMat) <- list(gapNames, gsub(" ", "\n",gapNames))
 
+OoE <- matrix(as.character(EOL), nrow = 4)
+OoE[!is.na(OoE)] <- paste("\n(",OoE[!is.na(OoE)],")", sep = "")
+# if i can colour it
+olMat2 <- olMat
 
-
-
-
+for(i in 1:4){
+  for(j in 1:4){
+    if(i == j){next}
+    olMat2[i,j] <- paste(olMat[i,j], OoE[i,j], sep = "")
+  }
+}
 
 pdf(file = paste("~/Desktop/RTN_domains/RTN_domain_plots/netGainLoss/hotspotPlot/genomeDistribution",specRef,".pdf", sep = ""), width = 8,height = 11)
 
@@ -164,7 +175,7 @@ mytheme <- gridExtra::ttheme_default(
   colhead = list(fg_params=list(cex = 0.8)),
   rowhead = list(fg_params=list(cex = 0.8)))
 
-t1 <- gridExtra::tableGrob(olMat, theme = mytheme)
+t1 <- gridExtra::tableGrob(olMat2, theme = mytheme)
 title <- textGrob("Hotspot overlap (%)",gp=gpar(fontsize=12))
 padding <- unit(5,"mm")
 
@@ -178,7 +189,7 @@ table <- gtable_add_grob(
   1, 1, 1, ncol(table))
 
 
-pushViewport(viewport(y= .27, x = .75 ))
+pushViewport(viewport(y= .285, x = .75 ))
 grid.draw(table)
 
 

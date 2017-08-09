@@ -17,7 +17,7 @@ gapType = "queIns"
 gapNames = c("gain","loss","gain", "loss")
 names(gapNames) <- c("refIns", "refDel", "queIns", "queDel")
 
-for(spec in 2){
+for(spec in 1:2){
   
   specRef = specRefs[spec]
   specQue = specQues[spec]
@@ -80,7 +80,11 @@ for(spec in 2){
     
     olWidth <- olWidth[olWidth$width/geneWidth[olWidth$gene_id] == 1,]
     keys <- olWidth$gene_id
-    #geneSymbol <- OrganismDbi::select(org.db, keys=keys, columns = c("SYMBOL","GO"))
+    geneSymbol <- OrganismDbi::select(org.db, keys=keys, columns = c("SYMBOL","GO"))
+    # save the gene symbol info elsewhere
+    write.table(geneSymbol,quote = FALSE, sep = "\t",row.names = FALSE, col.names = TRUE,
+                file = paste("~/Desktop/RTN_domains/data/comparativeGenomics/hotspotsGenes/", 
+                             specRef,"_", gapType,"_","hotspotGenes.txt", sep = ""))
     
     
     ol <- findOverlaps(gene, reduce(synthBinNorm.gr), type = "within")
