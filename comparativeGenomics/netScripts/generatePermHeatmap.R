@@ -58,27 +58,32 @@ par(mar = c(10,1,5,1))
 image(hg19Z, col = "white", zlim = c(-max(abs(zAll)), max(abs(zAll))),axes = FALSE)
 #axis(side = 2, at = seq(0,1,length.out = ncol(hg19Z)), labels = colName, las = 2, line = -11)
 
-hg19Z[hg19Z < 2 & hg19Z > -2] <- NA
-image(hg19Z, col = pal(40), zlim = c(-max(abs(zAll)), max(abs(zAll))),xaxt = "n", yaxt = "n", main = "hg19")
+hg19Z[hg19Z < 3 & hg19Z > -3] <- NA
+image(matrix(1, nrow = nrow(hg19Z), ncol = ncol(hg19Z)), col = "grey90", xaxt = "n", yaxt = "n", main = "hg19")
+image(hg19Z, col = pal(40), zlim = c(-max(abs(zAll)), max(abs(zAll))), add = TRUE,
+      xaxt = "n", yaxt = "n", main = "hg19")
 axis(side = 1, at = seq(0,1,length.out = 4), labels = c("hg19 gain", "hg19 loss", "mm10 gain", "mm10 loss"), las = 2)
 axis(side = 2, at = seq(0,1,length.out = ncol(hg19Z)), labels = colName, las = 2)
 
 
 
 #par(mar = c(10,1,5,10))
-mm10Z[mm10Z < 2 & mm10Z > -2] <- NA
-image(mm10Z, col = pal(40), zlim = c(-max(abs(zAll)), max(abs(zAll))),xaxt = "n", yaxt = "n", main = "mm10")
+mm10Z[mm10Z < 3 & mm10Z > -3] <- NA
+image(matrix(1, nrow = nrow(hg19Z), ncol = ncol(hg19Z)), col = "grey90", xaxt = "n", yaxt = "n", main = "mm10")
+image(mm10Z, col = pal(40), zlim = c(-max(abs(zAll)), max(abs(zAll))), add = TRUE,
+      xaxt = "n", yaxt = "n", main = "mm10")
 axis(side = 1, at = seq(0,1,length.out = 4), labels = c("hg19 gain", "hg19 loss", "mm10 gain", "mm10 loss"), las = 2)
 
 par(mar = c(35,3,5,3))
 
 mat <- matrix(seq(-max(abs(zAll)), max(abs(zAll)), length.out = 19), nrow = 1)
-mat[mat < 2 & mat > -2] <- NA
-image(mat, col = pal(40), xaxt = "n", yaxt = "n", main = "Z score")
+image(mat, col = "grey90", xaxt = "n", yaxt = "n", main = "Z score")
+mat[mat < 3 & mat > -3] <- NA
+image(mat, col = pal(40), xaxt = "n", yaxt = "n", main = "Z score", add = TRUE)
 
-upperCut <- min(which(as.integer(seq(-max(abs(zAll)), max(abs(zAll)), length.out = 1000)) == 2))/1000
+upperCut <- min(which(as.integer(seq(-max(abs(zAll)), max(abs(zAll)), length.out = 1000)) == 3))/1000
 
-axis(side = 2, at = c(0, 1-upperCut,upperCut, 1), labels = c(-13,-2,2,13), las = 2)
+axis(side = 2, at = c(0, 1-upperCut,upperCut, 1), labels = c(-75,-3,3,75), las = 2)
 
 dev.off()
 

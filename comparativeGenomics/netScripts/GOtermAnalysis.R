@@ -60,11 +60,11 @@ for(spec in 1:2){
     geneFeatures <- sort(sortSeqlevels(GenomicFeatures::genes(txdb)))
     gene <- genoExpandBreak(geneFeatures, synthGenome = newSynthRefShift, seqlengths(synthBinNorm.gr))
     
-    #  if((gapType == "refDel" & specRef == "hg19") | (gapType == "queDel" & specRef == "mm10")){
-    #   sigRange <- repSigRanges[[gapType]]
-    #  }else{
+    if((gapType == "refDel" & specRef == "hg19") | (gapType == "queDel" & specRef == "mm10")){
+       sigRange <- repSigRanges[[gapType]]
+      }else{
     sigRange <- GenomicRanges::intersect(repSigRanges[[gapType]], noRepSigRanges[[gapType]])
-    # }
+     }
     
     ol <- findOverlaps(gene, sigRange)
     pInt <- pintersect(gene[queryHits(ol)], sigRange[subjectHits(ol)])
@@ -85,6 +85,8 @@ for(spec in 1:2){
     write.table(geneSymbol,quote = FALSE, sep = "\t",row.names = FALSE, col.names = TRUE,
                 file = paste("~/Desktop/RTN_domains/data/comparativeGenomics/hotspotsGenes/", 
                              specRef,"_", gapType,"_","hotspotGenes.txt", sep = ""))
+    
+    
     
     
     ol <- findOverlaps(gene, reduce(synthBinNorm.gr), type = "within")
@@ -160,7 +162,7 @@ for(spec in 1:2){
     # labels and captions
     xTab <- xtable::xtable(printResAll, 
                            caption = paste("Top 10 biological process GO terms for genes located in", specRef, gapNames[gapType], "hotspots.",
-                                           "P-values for each GO term were calculated using the fisher statistic combined with one of four seperate algorithms that each take the GO hierarchy into acount (described in methods)"), 
+                                           "P-values for each GO term were calculated using the fisher statistic combined with one of four separate algorithms that each take the GO hierarchy into account (described in methods)"), 
                            label = paste("tab:",specRef,gapType,"goTerm", sep = ""))
     termTab <- print(xTab,include.rownames = FALSE, hline.after = c(0,0,10,20,30))
     

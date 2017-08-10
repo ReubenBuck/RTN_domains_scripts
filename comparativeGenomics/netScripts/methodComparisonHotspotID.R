@@ -22,8 +22,8 @@ ZsigAdj <- function(Zs, cutoff){
 
 
 
-specRef = "hg19"
-specQue = "mm10"
+specRef = "mm10"
+specQue = "hg19"
 
 load(paste("~/Desktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/",specRef,".synthBin.RData", sep = ""))
 noRepSynthBin.gr <- synthBin.gr
@@ -116,7 +116,7 @@ for(m in mehtods){
   
   sigRanges = NULL
   for(i in 1:length(gapChoice)){
-    z <- ZsigAdj(dfGscore[,gapChoice[i]],cutoff = .05)
+    z <- ZsigAdj(dfGscore[,gapChoice[i]],cutoff = .05) & dfGscore[,gapChoice[i]] > 0
     sigRanges <- c(sigRanges , list((synthBinNorm.gr[z])))
   }
   names(sigRanges) <- gapChoice
@@ -146,7 +146,13 @@ for(gChoice in gapChoice){
   
 }
 
-sigOlMat
+sigOlMat * 200000/1e6
+
+
+# select hotspots based on varified sites.
+# use things where we can measure the error in the estimates
+# gain hotspots are identified by transposon enrichent. 
+# loss hotspots are identified by ancestral elements.
 
 
 save(repSigRanges, noRepSigRanges, 

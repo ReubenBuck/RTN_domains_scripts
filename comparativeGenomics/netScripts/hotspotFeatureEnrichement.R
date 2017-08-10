@@ -21,7 +21,13 @@ gapType = c("refIns", "refDel", "queIns", "queDel")
 
 intSigRanges = NULL
 for(i in 1:length(gapType)){
-  intSigRange <- intersect(noRepSigRanges[[gapType[i]]], repSigRanges[[gapType[i]]])
+  
+  if((gapType[i] == "refDel" & specRef == "hg19") | (gapType[i] == "queDel" & specRef == "mm10")){
+    intSigRange <-  repSigRanges[[gapType[i]]]
+  }else{
+    intSigRange <- intersect(noRepSigRanges[[gapType[i]]], repSigRanges[[gapType[i]]])
+  }
+  
   intSigRanges <- c(intSigRanges, list(intSigRange))
 }
 names(intSigRanges) <- gapType
@@ -42,7 +48,7 @@ df[remainRefBases > 0,colChoice] <- (df[remainRefBases > 0,colChoice]/remainRefB
 
 
 remainingBases <- (df$end - df$start + 1) - (df$missingGap + df$seqGap)
-df <- df[remainRefBases > 150001,]
+df <- df[remainingBases > 150001,]
 df <- df[complete.cases(df),]
 synthBinNormVar.gr <- GRanges(df)
 seqinfo(synthBinNormVar.gr) <- seqinfo(synthBin.gr)
@@ -71,7 +77,10 @@ zAll = NULL
 # do this for each gap type
 
 for(gType in gapType){
-  ols <- overlapsAny(synthBinNormVar.gr,intSigRanges[[gType]])
+  ols <- overlapsAny(synthBinNormVar.gr,intSigRanges[[gType]], minoverlap = 1)
+  
+  print(sum(ols))
+  print(sum(width(intSigRanges[[gType]]))/2e5)
   
   meanDiff <- colMeans(dfMcol[ols,]) - colMeans(dfMcol[!ols,])
   
@@ -89,9 +98,12 @@ for(gType in gapType){
   
   z <- (meanDiff - colMean) / colSd
   zAll <- rbind(zAll,z)
+  print(z)
 }
 
 rownames(zAll) <- gapType
+
+zAll
 
 if(specRef == "hg19"){
   save(zAll, file = paste("~/Desktop/RTN_domains/R_objects/netsAnalysis/hotspots/",specRef,".permZ.RData", sep = ""))

@@ -56,15 +56,25 @@ chrAll <- chrAll[-grep("_", chrAll)]
 
 chrAll <- chrAll[chrAll!="chrM"]
 chrAll <- chrAll[chrAll!="chrY"]
-chrAll <- chrAll[chrAll!="chrX"]
+#chrAll <- chrAll[chrAll!="chrX"]
 
 
 # get important ranges
 intSigRanges = NULL
 for(i in 1:length(gapType)){
-  intSigRange <- intersect(noRepSigRanges[[gapType[i]]], repSigRanges[[gapType[i]]])
-  intSigRange <- intSigRange[seqnames(intSigRange) %in% chrAll]
-  intSigRanges <- c(intSigRanges, list(intSigRange))
+  if(gapType[i] == "refDel" & specRef == "hg19"){
+    intSigRange <- repSigRanges[[gapType[i]]]
+    intSigRange <- intSigRange[seqnames(intSigRange) %in% chrAll]
+    intSigRanges <- c(intSigRanges, list(intSigRange))
+  }else if(gapType[i] == "queDel" & specRef == "mm10"){
+    intSigRange <- repSigRanges[[gapType[i]]]
+    intSigRange <- intSigRange[seqnames(intSigRange) %in% chrAll]
+    intSigRanges <- c(intSigRanges, list(intSigRange))
+  }else{
+    intSigRange <- intersect(noRepSigRanges[[gapType[i]]], repSigRanges[[gapType[i]]])
+    intSigRange <- intSigRange[seqnames(intSigRange) %in% chrAll]
+    intSigRanges <- c(intSigRanges, list(intSigRange))
+  }
 }
 names(intSigRanges) <- gapType
 

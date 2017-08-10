@@ -68,14 +68,14 @@ for(g in geno){
     classic = TRUE
     
     
-    cFisher$classicFisher <- gsub("< ","",cFisher$classicFisher)
+    cFisher$classicFisher <- gsub("<","",cFisher$classicFisher)
     sigPC <- cFisher[p.adjust(cFisher$classicFisher,method = "fdr") < 0.05,"GO.ID"]
     fdrVals <- p.adjust(cFisher$classicFisher,method = "fdr")
     names(fdrVals) <- cFisher$GO.ID
     
     for(i in termRameain){
       dfResult[i,"term"] <- (t[i])
-      dfResult[i,f] <- sum(offS[[i]] %in% sigPC)  / length(sigPC) / (sum( offS[[i]] %in% cFisher$GO.ID )/1000)
+      dfResult[i,f] <- sum(offS[[i]] %in% sigPC)  / length(sigPC)  #   / (sum( offS[[i]] %in% cFisher$GO.ID )/1000)
       print(length(offS[[i]]))
       
       if(any(offS[[i]] %in% sigPC)){
@@ -104,7 +104,7 @@ for(g in geno){
   
   
   # make a stacked bar plot
- # pdf(paste("~/Desktop/goSum",g,".pdf", sep = ""), onefile = TRUE)
+  pdf(paste("~/Desktop/goSum",g,".pdf", sep = ""), onefile = TRUE)
   par(mar= c(1,4,1,1), oma = c(20,3,4,2))
   layout(1:4)
 
@@ -116,11 +116,11 @@ for(g in geno){
     legend("topright", c("hg19 gain", "hg19 loss", "mm10 gain", "mm10 loss")[i], bty = "n", cex = 1.5)
   }
   axis(side=1, at = .5:(length(t)-.5), labels  = t, las =2, tick = FALSE)
-  mtext(text = "Significant child terms (proportion per 1000 annotations)", side = 2, outer = TRUE, cex = .7)
+  mtext(text = "Significant child terms (proportion)", side = 2, outer = TRUE, cex = .7)
 
   mtext(text = "Parent terms", side = 1, outer = FALSE, cex = 1, line = 17)
 
- # dev.off()
+  dev.off()
   
   
   

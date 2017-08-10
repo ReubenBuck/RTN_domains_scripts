@@ -204,15 +204,16 @@ dev.off()
 
 
 
+pal <- RColorBrewer::brewer.pal(4,"Dark2")
 
 
-VennDiagramHg19 <- data.frame(repUniq = c(318, 1406, 1182, 1181), 
-                          intersect = c(1098, 314, 2050, 1980), 
-                          ancUniq = c(795, 1791, 687, 811))
+VennDiagramHg19 <- data.frame(repUniq = c(37.4, 223.8, 101.2, 144.4), 
+                          intersect = c(145.8, 8.0, 349.8, 227.8), 
+                          ancUniq = c(85.0, 144.6, 56.0, 109.0))
 
-VennDiagramMm10 <- data.frame(repUniq = c(380, 1460, 1271, 1110), 
-                              intersect = c(1018, 350, 2057, 1956), 
-                              ancUniq = c(723, 1756, 653, 858))
+VennDiagramMm10 <- data.frame(repUniq = c(112.0, 141.0, 48.0, 235.6), 
+                              intersect = c(348.4, 226.2, 134.4, 10.4), 
+                              ancUniq = c(51.0, 115.6, 82.4, 139.0))
 
 
 rownames(VennDiagramHg19) <- rownames(VennDiagramMm10) <- c("hg19 gain", "hg19 loss", "mm10 gain", "mm10 loss")
@@ -229,8 +230,8 @@ points(c(.335, .665), c(.5,.5), cex = 38, pch = 16,
 for(i in 1:3){
 text(x = rep(c(.18,.5,.82)[i],4),
      y = seq(.65,.35,length.out = 4),
-     labels = VennDiagramHg19[,i]*200000/1e6, 
-     cex = sqrt((VennDiagramHg19[,i]/max(as.matrix(VennDiagramHg19)))*5 ),
+     labels = VennDiagramHg19[,i],#*200000/1e6, 
+     cex = 1.5,#sqrt((VennDiagramHg19[,i]/max(as.matrix(VennDiagramHg19)))*5 ),
      col = pal)
 }
 text(c(.18, .82), c(.87,.87), c("Recent tansposon", "Ancestral element"))
@@ -250,8 +251,8 @@ points(c(.335, .665), c(.5,.5), cex = 38, pch = 16,
 for(i in 1:3){
   text(x = rep(c(.18,.5,.82)[i],4),
        y = seq(.65,.35,length.out = 4),
-       labels = VennDiagramMm10[,i]*200000/1e6, 
-       cex = sqrt((VennDiagramMm10[,i]/max(as.matrix(VennDiagramMm10)))*5 ),
+       labels = VennDiagramMm10[,i],#*200000/1e6, 
+       cex = 1.5,#sqrt((VennDiagramMm10[,i]/max(as.matrix(VennDiagramMm10)))*5 ),
        col = pal)
 }
 text(c(.18, .82), c(.87,.87), c("Recent tansposon", "Ancestral element"))
@@ -260,10 +261,27 @@ title(main = "mm10")
 dev.off()
 
 
-
-
-
-
+# 
+# hg19 
+# 
+# repUniq intersect ancUniq
+# refIns    37.4     145.8    85.0
+# refDel   223.8       8.0   144.6
+# queIns   101.2     349.8    56.0
+# queDel   144.4     227.8   109.0
+# 
+# 
+# 
+# mm10 
+# 
+# 
+# repUniq intersect ancUniq
+# refIns   112.0     348.4    51.0
+# refDel   141.0     226.2   115.6
+# queIns    48.0     134.4    82.4
+# queDel   235.6      10.4   139.0
+# 
+# 
 
 
 

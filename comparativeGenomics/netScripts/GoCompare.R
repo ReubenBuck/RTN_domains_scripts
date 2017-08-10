@@ -50,10 +50,10 @@ for(specRef in c("hg19", "mm10")){
   
   # what happens when we look at pvalues?
   colChoice <- "classicFisher"
-  mat <- as.matrix(data.frame(refIns = as.numeric(gsub("< ","",refIns[,colChoice])), 
-                              refDel =as.numeric(gsub("< ","",refDel[,colChoice])),
-                              queIns =as.numeric(gsub("< ","",queIns[,colChoice])), 
-                              queDel =as.numeric(gsub("< ","",queDel[,colChoice]))
+  mat <- as.matrix(data.frame(refIns = as.numeric(gsub("<","",refIns[,colChoice])), 
+                              refDel =as.numeric(gsub("<","",refDel[,colChoice])),
+                              queIns =as.numeric(gsub("<","",queIns[,colChoice])), 
+                              queDel =as.numeric(gsub("<","",queDel[,colChoice]))
   ))
   
   
