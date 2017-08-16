@@ -57,6 +57,7 @@ for(g in geno){
   )
   
   
+  termNo <- NULL
   dfResult <- data.frame(row.names = termRameain)
   for(f in fileChoices){
     
@@ -70,8 +71,13 @@ for(g in geno){
     
     cFisher$classicFisher <- gsub("<","",cFisher$classicFisher)
     sigPC <- cFisher[p.adjust(cFisher$classicFisher,method = "fdr") < 0.05,"GO.ID"]
+    sigPC <- sigPC[sigPC != "GO:0008150"]
+    sigPC <- sigPC[!(sigPC %in% names(t))]
     fdrVals <- p.adjust(cFisher$classicFisher,method = "fdr")
     names(fdrVals) <- cFisher$GO.ID
+    
+    
+    termNo <- c(termNo, length(unique(sigPC)))
     
     for(i in termRameain){
       dfResult[i,"term"] <- (t[i])
@@ -104,17 +110,37 @@ for(g in geno){
   
   
   # make a stacked bar plot
-  pdf(paste("~/Desktop/goSum",g,".pdf", sep = ""), onefile = TRUE)
+  pdf(paste("~/Desktop/RTN_domains/RTN_domain_plots/netGainLoss/goTables/goSum",g,".pdf", sep = ""), onefile = TRUE, height = 8, width = 6)
   par(mar= c(1,4,1,1), oma = c(20,3,4,2))
   layout(1:4)
 
   for(i in 1:4){
+    
+    geneNo <- dplyr::filter(geneBasedGOTerms,genomicBackground == g, hotspotType == fileChoices[i])
+    goNo <- length(unique(geneNo$childName))
+    geneNo <- length(unique(geneNo$SYMBOL))
+    
     barplot(dfResult[,i], beside = FALSE, col =  RColorBrewer::brewer.pal(4, "Dark2")[i], las = 2,
-            ylim = c(0,.8), width = .9,space = .105, xaxs = "i")
+            ylim = c(0,1), width = .9,space = .105, xaxs = "i")
     if(i == 1){title(main = g, line = 0, outer = T, cex.main = 1.5)}
     grid()
-    legend("topright", c("hg19 gain", "hg19 loss", "mm10 gain", "mm10 loss")[i], bty = "n", cex = 1.5)
+    
+    
+    text(x = 21,y = .7,pos = 2,
+         labels = c("hg19 gain\n\n", "hg19 loss\n\n", "mm10 gain\n\n", "mm10 loss\n\n")[i],
+         font = 2
+    )
+    
+    text(x = 21,y = .7,pos = 2,
+         labels = paste(
+                        "\n",goNo, " Terms",
+                        "\n", geneNo, " Genes", sep = "")
+    )
   }
+  
+  
+  
+  
   axis(side=1, at = .5:(length(t)-.5), labels  = t, las =2, tick = FALSE)
   mtext(text = "Significant child terms (proportion)", side = 2, outer = TRUE, cex = .7)
 
@@ -137,5 +163,66 @@ write.csv(geneBasedGOTerms,file = "Desktop/geneBasedGoTetmAnnotation.csv",quote 
 # report the relevant gene names for each of our GO terms
 # simply go through the list of significant terms and pull them out
 
+
+pdf(file = "~/Desktop/RTN_domains/RTN_domain_plots/netGainLoss/goTables/GOvenn.pdf", height = 10, width = 10)
+layout(matrix(1:4, nrow = 2, byrow = TRUE))
+
+
+
+goList <- split(geneBasedGOTerms$SYMBOL[geneBasedGOTerms$genomicBackground == "hg19"], f = as.factor(geneBasedGOTerms$hotspotType[geneBasedGOTerms$genomicBackground == "hg19"]))
+goListUniq <- lapply(unique(goList), unique)
+names(goListUniq) <- names(goList)
+
+goListUniq <- goListUniq[c("refIns", "refDel", "queIns", "queDel")]
+names(goListUniq) <- c("hg19 gain", "hg19 loss", "mm10 gain", "mm10 loss")
+
+venn::venn(goListUniq,cexil = 1, zcolor = RColorBrewer::brewer.pal(4, "Dark2"), transparency = .5,cexsn = 1)
+title("hg19\nGenes", line = -5)
+
+
+goList <- split(geneBasedGOTerms$SYMBOL[geneBasedGOTerms$genomicBackground == "mm10"], f = as.factor(geneBasedGOTerms$hotspotType[geneBasedGOTerms$genomicBackground == "mm10"]))
+goListUniq <- lapply(unique(goList), unique)
+names(goListUniq) <- names(goList)
+
+goListUniq <- goListUniq[c("queIns", "queDel", "refIns", "refDel")]
+names(goListUniq) <- c("hg19 gain", "hg19 loss", "mm10 gain", "mm10 loss")
+
+venn::venn(goListUniq,cexil = 1, zcolor = RColorBrewer::brewer.pal(4, "Dark2"), transparency = .5,cexsn = 1)
+title("mm10\nGenes", line = -5)
+
+
+
+goList <- split(geneBasedGOTerms$childName[geneBasedGOTerms$genomicBackground == "hg19"], f = as.factor(geneBasedGOTerms$hotspotType[geneBasedGOTerms$genomicBackground == "hg19"]))
+goListUniq <- lapply(unique(goList), unique)
+names(goListUniq) <- names(goList)
+
+goListUniq <- goListUniq[c("refIns", "refDel", "queIns", "queDel")]
+names(goListUniq) <- c("hg19 gain", "hg19 loss", "mm10 gain", "mm10 loss")
+
+venn::venn(goListUniq,cexil = 1, 
+           zcolor = RColorBrewer::brewer.pal(4, "Dark2"), 
+           transparency = .5,cexsn = 1)
+title("hg19\nChild terms", line = -5)
+
+goList <- split(geneBasedGOTerms$childName[geneBasedGOTerms$genomicBackground == "mm10"], f = as.factor(geneBasedGOTerms$hotspotType[geneBasedGOTerms$genomicBackground == "mm10"]))
+goListUniq <- lapply(unique(goList), unique)
+names(goListUniq) <- names(goList)
+
+goListUniq <- goListUniq[c("queIns", "queDel", "refIns", "refDel")]
+names(goListUniq) <- c("hg19 gain", "hg19 loss", "mm10 gain", "mm10 loss")
+
+venn::venn(goListUniq,cexil  = 1, 
+           zcolor = RColorBrewer::brewer.pal(4, "Dark2"),
+           transparency = .5,cexsn = 1)
+title("mm10\nChild terms", line = -5)
+# for each overlap most genes are unique
+
+
+
+
+# for each overlap most genes are unique
+
+
+dev.off()
 
 
