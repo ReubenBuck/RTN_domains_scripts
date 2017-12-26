@@ -10,12 +10,12 @@ devtools::source_url("http://raw.githubusercontent.com/ReubenBuck/RTN_domains_sc
 
 
 
-specRef = "mm10"
-specQue = "hg19"
+specRef = "hg19"
+specQue = "mm10"
 
-load(paste("Desktop/RTN_domains/R_objects/netsAnalysis/formattedNetData/",specRef,".",specQue,".netData.RData",sep = ""))
-load(paste("Desktop/RTN_domains/R_objects/netsAnalysis/stretchedGapAnnotation/",specRef,".stretch.RData", sep = ""))
-load(paste("Desktop/RTN_domains/R_objects/netsAnalysis/shiftData/",specRef,".expand.breaks.RData", sep = ""))
+load(paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/formattedNetData/",specRef,".",specQue,".netData.RData",sep = ""))
+load(paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/stretchedGapAnnotation/",specRef,".stretch.RData", sep = ""))
+load(paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/shiftData/",specRef,".expand.breaks.RData", sep = ""))
 
 
 # annotate extra files
@@ -64,10 +64,13 @@ genome(synthGenome) <- genome(stretchedRef.gr)
 
 
 # select bin size
-binSize <- 2e5
+binSize <- c(5e4, 1e5, 2e5, 5e5, 1e6)
+synthBinList <- NULL
+synthDFList <- NULL
 
+for(i in binSize){
 # bin synthetic genome
-synthBin.gr <- unlist(slidingWindows(synthGenome, width = binSize, step = binSize))
+synthBin.gr <- unlist(slidingWindows(synthGenome, width = i, step = i))
 
 # get overlapping ranges
 ol <- findOverlaps(refSynth, synthBin.gr)
@@ -94,10 +97,23 @@ mcols(synthBin.gr[sumDF$binNo[sumDF$type == "queDel"]])$queDel = sumDF$total[sum
 mcols(synthBin.gr[sumDF$binNo[sumDF$type == "missingGap"]])$missingGap = sumDF$total[sumDF$type == "missingGap"]
 mcols(synthBin.gr[sumDF$binNo[sumDF$type == "seqGap"]])$seqGap = sumDF$total[sumDF$type == "seqGap"]
 
+synthBinDF <- data.frame(mcols(synthBin.gr))
+synthBinDF <- synthBinDF[rowSums(synthBinDF[,c("missingGap", "seqGap")]) < .25 * i,]
+synthBinDF <- (synthBinDF[,1:4] / (i - rowSums(synthBinDF[,c("missingGap", "seqGap")]))) * i
 
+synthBinList <- c(synthBinList, list(synthBin.gr))
+synthDFList <- c(synthDFList, list(synthBinDF))
+}
 
+pdf(file = paste("~/Documents/RTN_domain_writing/manuscriptRound2/bioArxiv/sup/TexFigs/hotspotTest/binSize_",specRef, ".pdf", sep = ""),
+    width = 5, height = 10)
+layout(1:4)
+for(i in c(1,3,4,5)){
+  hist(rowSums(synthDFList[[i]][,1:4]), breaks = 50, main = paste(as.integer(binSize[i]), "bp"), xlab = "Gaps per bin (bp)")
+}
+dev.off()
 # at this point we get our syntheticBinned genome with the data
-save(synthBin.gr, file = paste("~/Desktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/", genomes["ref"], ".synthBin.RData", sep = ""))
+#save(synthBin.gr, file = paste("~/Desktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/", genomes["ref"], ".synthBin.RData", sep = ""))
 
 
 

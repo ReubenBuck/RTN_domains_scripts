@@ -25,12 +25,12 @@ ZsigAdj <- function(Zs, cutoff){
 specRef = "mm10"
 specQue = "hg19"
 
-load(paste("~/Desktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/",specRef,".synthBin.RData", sep = ""))
+load(paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/",specRef,".synthBin.RData", sep = ""))
 noRepSynthBin.gr <- synthBin.gr
 noRepSynthBin.df <- mcols(noRepSynthBin.gr)
 noRepSynthBin.df <- noRepSynthBin.df[noRepSynthBin.df$missingGap + noRepSynthBin.df$seqGap < 20000,]
 
-load(paste("~/Desktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/",specRef,".synthBin.rep.RData", sep = ""))
+load(paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/",specRef,".synthBin.rep.RData", sep = ""))
 repSynthBin.gr <- synthBin.gr
 repSynthBin.df <- mcols(repSynthBin.gr)
 repSynthBin.df <- repSynthBin.df[repSynthBin.df$missingGap + repSynthBin.df$seqGap < 20000,]

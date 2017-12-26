@@ -3,7 +3,7 @@ rm(list = ls())
 library(GenomicRanges)
 options(stringsAsFactors = FALSE)
 
-genomes <- c(ref = "hg19", que = "mm10")
+genomes <- c(ref = "mm10", que = "hg19")
 
 if(genomes["ref"] == "hg19"){
   specClade <- c(ref = "primate", que = "rodent")
@@ -90,21 +90,21 @@ filePath <- paste("Documents/dna_turnover/workStationDesktop/RTN_domains/R_objec
 load(filePath)
 
 
-ol <- findOverlaps(mcols(stretchedRef.gr)[["refRanges"]], minoverlap = 1)
-ol <- ol[!(isSelfHit(ol))]
-ol <- ol[(stretchedRef.gr[queryHits(ol)]$type == "refIns" | stretchedRef.gr[queryHits(ol)]$type == "queDel") ]
-ol <- ol[(stretchedRef.gr[subjectHits(ol)]$type == "refIns" | stretchedRef.gr[subjectHits(ol)]$type == "queDel") ]
-
-
-end(mcols(refS.gr)[[dataSelection$range[j]]][queryHits(ol)]) = start(mcols(refS.gr)[[dataSelection$range[j]]][queryHits(ol)]) + width(refS.gr)[queryHits(ol)]
-ol <- ol[!isRedundantHit(ol)]
-mcols(refS.gr)[[dataSelection$range[j]]][subjectHits(ol)] <- shift(mcols(refS.gr)[[dataSelection$range[j]]][subjectHits(ol)], shift = width(mcols(refS.gr)[[dataSelection$range[j]]][queryHits(ol)]))
-
-
-ol <- findOverlaps(mcols(stretchedRef.gr)[["queRanges"]], minoverlap = 1)
-ol <- ol[!(isSelfHit(ol))]
-ol <- ol[(stretchedRef.gr[queryHits(ol)]$type == "queIns" | stretchedRef.gr[queryHits(ol)]$type == "refDel") ]
-ol <- ol[(stretchedRef.gr[subjectHits(ol)]$type == "queIns" | stretchedRef.gr[subjectHits(ol)]$type == "refDel") ]
+# ol <- findOverlaps(mcols(stretchedRef.gr)[["refRanges"]], minoverlap = 1)
+# ol <- ol[!(isSelfHit(ol))]
+# ol <- ol[(stretchedRef.gr[queryHits(ol)]$type == "refIns" | stretchedRef.gr[queryHits(ol)]$type == "queDel") ]
+# ol <- ol[(stretchedRef.gr[subjectHits(ol)]$type == "refIns" | stretchedRef.gr[subjectHits(ol)]$type == "queDel") ]
+# 
+# 
+# end(mcols(refS.gr)[[dataSelection$range[j]]][queryHits(ol)]) = start(mcols(refS.gr)[[dataSelection$range[j]]][queryHits(ol)]) + width(refS.gr)[queryHits(ol)]
+# ol <- ol[!isRedundantHit(ol)]
+# mcols(refS.gr)[[dataSelection$range[j]]][subjectHits(ol)] <- shift(mcols(refS.gr)[[dataSelection$range[j]]][subjectHits(ol)], shift = width(mcols(refS.gr)[[dataSelection$range[j]]][queryHits(ol)]))
+# 
+# 
+# ol <- findOverlaps(mcols(stretchedRef.gr)[["queRanges"]], minoverlap = 1)
+# ol <- ol[!(isSelfHit(ol))]
+# ol <- ol[(stretchedRef.gr[queryHits(ol)]$type == "queIns" | stretchedRef.gr[queryHits(ol)]$type == "refDel") ]
+# ol <- ol[(stretchedRef.gr[subjectHits(ol)]$type == "queIns" | stretchedRef.gr[subjectHits(ol)]$type == "refDel") ]
 
 
 
