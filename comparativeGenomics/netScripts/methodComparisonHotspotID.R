@@ -22,8 +22,11 @@ ZsigAdj <- function(Zs, cutoff){
 
 
 
-specRef = "mm10"
-specQue = "hg19"
+specRef = "hg19"
+specQue = "mm10"
+
+
+hotspotType = "cold"
 
 load(paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/",specRef,".synthBin.RData", sep = ""))
 noRepSynthBin.gr <- synthBin.gr
@@ -37,7 +40,7 @@ repSynthBin.df <- repSynthBin.df[repSynthBin.df$missingGap + repSynthBin.df$seqG
 
 
 
-pdf(file = paste("~/Desktop/RTN_domains/RTN_domain_plots/netGainLoss/methodCompare/",specRef,"scatterCompare.pdf", sep = ""))
+pdf(file = paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/RTN_domain_plots/netGainLoss/methodCompare/",specRef,"_",hotspotType,"_","scatterCompare.pdf", sep = ""))
 layout(matrix(1:4, nrow = 2))
 par(mar = c(2,2,2,2), oma = c(5,4,4,2))
 smoothScatter(rank(repSynthBin.df$refIns), rank(noRepSynthBin.df$refIns),
@@ -115,9 +118,16 @@ for(m in mehtods){
   
   
   sigRanges = NULL
-  for(i in 1:length(gapChoice)){
-    z <- ZsigAdj(dfGscore[,gapChoice[i]],cutoff = .05) & dfGscore[,gapChoice[i]] > 0
-    sigRanges <- c(sigRanges , list((synthBinNorm.gr[z])))
+  if(hotspotType == "hot"){
+    for(i in 1:length(gapChoice)){
+      z <- ZsigAdj(dfGscore[,gapChoice[i]],cutoff = .05) & dfGscore[,gapChoice[i]] > 0
+      sigRanges <- c(sigRanges , list((synthBinNorm.gr[z])))
+    }
+  }else if(hotspotType == "cold"){
+    for(i in 1:length(gapChoice)){
+      z <- ZsigAdj(dfGscore[,gapChoice[i]],cutoff = .05) & dfGscore[,gapChoice[i]] < 0
+      sigRanges <- c(sigRanges , list((synthBinNorm.gr[z])))
+    } 
   }
   names(sigRanges) <- gapChoice
   assign(x = paste(m, "SigRanges", sep = ""), value = sigRanges)
@@ -156,8 +166,8 @@ sigOlMat * 200000/1e6
 
 
 save(repSigRanges, noRepSigRanges, 
-     file = paste("~/Desktop/RTN_domains/R_objects/netsAnalysis/hotspots/", specRef, "repNoRep.RData", sep = ""))
+     file = paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/hotspots/", specRef,"_",hotspotType,"_", "repNoRep.RData", sep = ""))
 
 save(synthBinNorm.gr, 
-     file = paste("~/Desktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/", specRef, "synthBinNorm.RData", sep = ""))
+     file = paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/", specRef,"_",hotspotType,"_", "synthBinNorm.RData", sep = ""))
 

@@ -8,9 +8,11 @@ rm(list = ls())
 specRef = "hg19"
 specQue = "mm10"
 
+hotspotType = "cold"
+
 # get dta
-load(paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/hotspots/", specRef, "repNoRep.RData", sep = ""))
-load(paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/", specRef, "synthBinNorm.RData", sep = ""))
+load(paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/hotspots/", specRef,"_",hotspotType,"_", "repNoRep.RData", sep = ""))
+load(paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/", specRef, "_",hotspotType,"_","synthBinNorm.RData", sep = ""))
 load(paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/formattedNetData/",specRef,".",specQue,".netData.RData",sep = ""))
 load(paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/shiftData/",specRef,".expand.breaks.RData", sep = ""))
 
@@ -139,7 +141,7 @@ for(i in 1:4){
   }
 }
 
-pdf(file = paste("~/Desktop/RTN_domains/RTN_domain_plots/netGainLoss/hotspotPlot/genomeDistribution",specRef,".pdf", sep = ""), width = 8,height = 11)
+pdf(file = paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/RTN_domain_plots/netGainLoss/hotspotPlot/genomeDistribution","_",hotspotType,"_",specRef,".pdf", sep = ""), width = 8,height = 11)
 
 plot(1,xlim = c(0,max(seqlengths(synthBinNorm.gr))), ylim = c(0,(length(chrAll))*5),
      axes = FALSE, ylab = "", xlab = "", type = "n", main = specRef)

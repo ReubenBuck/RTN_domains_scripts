@@ -211,14 +211,14 @@ VennDiagramHg19 <- data.frame(repUniq = c(37.4, 223.8, 101.2, 144.4),
                           intersect = c(145.8, 8.0, 349.8, 227.8), 
                           ancUniq = c(85.0, 144.6, 56.0, 109.0))
 
-VennDiagramMm10 <- data.frame(repUniq = c(112.0, 141.0, 48.0, 235.6), 
-                              intersect = c(348.4, 226.2, 134.4, 10.4), 
-                              ancUniq = c(51.0, 115.6, 82.4, 139.0))
+VennDiagramMm10 <- data.frame(repUniq = c(48.0, 235.6,112.0, 141.0), 
+                              intersect = c(134.4, 10.4,348.4, 226.2), 
+                              ancUniq = c(82.4, 139.0, 51.0, 115.6))
 
 
 rownames(VennDiagramHg19) <- rownames(VennDiagramMm10) <- c("hg19 gain", "hg19 loss", "mm10 gain", "mm10 loss")
 
-pdf(file = "Desktop/RTN_domains/RTN_domain_plots/netGainLoss/gapAssigningDist/hg19venn.pdf", width = 6.2)
+pdf(file = "Documents/dna_turnover/workStationDesktop/RTN_domains/RTN_domain_plots/netGainLoss/gapAssigningDist/hg19venn.pdf", width = 6.2)
 layout(1)
 par(mar = c(5,5,5,5))
 
@@ -239,7 +239,7 @@ title(main = "hg19")
 dev.off()
 
 
-pdf(file = "Desktop/RTN_domains/RTN_domain_plots/netGainLoss/gapAssigningDist/mm10venn.pdf", width = 6.2)
+pdf(file = "Documents/dna_turnover/workStationDesktop/RTN_domains/RTN_domain_plots/netGainLoss/gapAssigningDist/mm10venn.pdf", width = 6.2)
 layout(1)
 par(mar = c(5,5,5,5))
 
@@ -281,7 +281,84 @@ dev.off()
 # queIns    48.0     134.4    82.4
 # queDel   235.6      10.4   139.0
 # 
-# 
+# ##
 
+
+## cold spots
+# 
+# hg19
+# 
+# repUniq intersect ancUniq
+# refIns    35.4      98.4   101.6
+# refDel   129.0      33.0   312.2
+# queIns   195.2     116.0   100.6
+# queDel   118.6     224.8    76.2
+# 
+# mm10
+# 
+# repUniq intersect ancUniq
+# refIns   197.0     118.6   104.2
+# refDel   111.6     212.4    69.4
+# queIns    38.2      91.4    99.0
+# queDel   132.8      32.6   310.6
+
+
+
+# cold spot comparison
+pal <- RColorBrewer::brewer.pal(4,"Dark2")
+
+
+VennDiagramHg19 <- data.frame(repUniq = c(35.4, 129.0, 195.2, 118.6), 
+                              intersect = c(98.4, 33.0, 116.0, 224.8), 
+                              ancUniq = c(101.6, 312.2, 100.6, 76.2))
+
+VennDiagramMm10 <- data.frame(repUniq = c(38.2, 132.8, 197.0, 111.0), 
+                              intersect = c(91.4, 32.6, 118.6, 212.4), 
+                              ancUniq = c(99.0, 310.6, 104.2, 69.4))
+
+
+rownames(VennDiagramHg19) <- rownames(VennDiagramMm10) <- c("hg19 gain", "hg19 loss", "mm10 gain", "mm10 loss")
+
+pdf(file = "Documents/dna_turnover/workStationDesktop/RTN_domains/RTN_domain_plots/netGainLoss/gapAssigningDist/hg19venn_coldspot.pdf", width = 6.2)
+layout(1)
+par(mar = c(5,5,5,5))
+
+plot.new()
+points(c(.335, .665), c(.5,.5), cex = 38)
+points(c(.335, .665), c(.5,.5), cex = 38, pch = 16, 
+       col = c(scales::alpha(1, .1), scales::alpha(2, .1)))
+
+for(i in 1:3){
+  text(x = rep(c(.18,.5,.82)[i],4),
+       y = seq(.65,.35,length.out = 4),
+       labels = VennDiagramHg19[,i],#*200000/1e6, 
+       cex = 1.5,#sqrt((VennDiagramHg19[,i]/max(as.matrix(VennDiagramHg19)))*5 ),
+       col = pal)
+}
+text(c(.18, .82), c(.87,.87), c("Recent tansposon", "Ancestral element"))
+title(main = "hg19")
+dev.off()
+
+
+pdf(file = "Documents/dna_turnover/workStationDesktop/RTN_domains/RTN_domain_plots/netGainLoss/gapAssigningDist/mm10venn_coldspot.pdf", width = 6.2)
+layout(1)
+par(mar = c(5,5,5,5))
+
+plot.new()
+points(c(.335, .665), c(.5,.5), cex = 38)
+points(c(.335, .665), c(.5,.5), cex = 38, pch = 16, 
+       col = c(scales::alpha(1, .1), scales::alpha(2, .1)))
+
+for(i in 1:3){
+  text(x = rep(c(.18,.5,.82)[i],4),
+       y = seq(.65,.35,length.out = 4),
+       labels = VennDiagramMm10[,i],#*200000/1e6, 
+       cex = 1.5,#sqrt((VennDiagramMm10[,i]/max(as.matrix(VennDiagramMm10)))*5 ),
+       col = pal)
+}
+text(c(.18, .82), c(.87,.87), c("Recent tansposon", "Ancestral element"))
+title(main = "mm10")
+
+dev.off()
 
 

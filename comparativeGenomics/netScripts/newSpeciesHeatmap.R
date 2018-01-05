@@ -23,7 +23,7 @@ ZsigAdj <- function(Zs, cutoff){
 
 
 options(stringsAsFactors = FALSE)
-genomes = c(ref = "mm10", que = "hg19")
+genomes = c(ref = "hg19", que = "mm10")
 
 
 # load genome information
@@ -188,7 +188,7 @@ pMatAdj <- matrix(p.adjust(pMat, method = "bonferroni") < .05, ncol = ncol(pMat)
 
 
 
-oMatLog <- log10(oMat)
+oMatLog <- log2(oMat)
 oMatLog[is.infinite(oMatLog)] <- NA
 oMatLog[!pMatAdj] <- NA
 oMatLog[upper.tri(oMatLog)] <- NA
@@ -248,7 +248,15 @@ par(oma = c(5,5,5,5), mar = c(3,3,3,3))
 
 for(i in 1:nrow(gridLayout)){
   
-  if(gridLayout[i,1] == "newPlot"){
+  if(i == 9){
+    par(mar = c(12,3,3,3))
+     image(x = -6:6, y = 1,
+           matrix(-lim:lim), 
+           col = blueRed(20), 
+           main = "OR (log2)", 
+           yaxt = "n", xlab = "", ylab = "")
+    par(mar = c(3,3,3,3))
+  }else if(gridLayout[i,1] == "newPlot"){
     plot.new()
   }else if(gridLayout$rows[i] == gridLayout$cols[i]){
     cols <- get(as.character(gridLayout$cols[i]))
@@ -266,9 +274,9 @@ for(i in 1:nrow(gridLayout)){
           col = blueRed(20), zlim = c(-lim,lim),
           xaxt = "n", yaxt = "n", bty = "n",xlab = "", ylab = "")
     axis(side = 1, at = -.5:(nrow(corMat1) + 1), 
-         labels = c("",90, timing[rownames(corMat1)]))
+         labels = c("",90, round(timing[rownames(corMat1)])))
     axis(side = 2, at = -.5:(ncol(corMat1) + 1), 
-         labels = c("",90, timing[colnames(corMat1)]), las = 2)
+         labels = c("",90, round(timing[colnames(corMat1)])), las = 2)
   }else{
     cols <- get(as.character(gridLayout$cols[i]))
     rows <- get(as.character(gridLayout$rows[i]))
@@ -280,12 +288,12 @@ for(i in 1:nrow(gridLayout)){
           xaxt = "n", yaxt = "n", bty = "n", xlab = "", ylab = "")
     image(1:nrow(corMat1), 1:ncol(corMat1), 
           corMat1, 
-          col = blueRed(20), zlim = c(-1,1),
+          col = blueRed(20), zlim = c(-lim,lim),
           xaxt = "n", yaxt = "n", bty = "n", xlab = "", ylab = "", add = TRUE)
     axis(side = 1, at = -.5:(nrow(corMat1) + 1), 
-         labels = c("",90, timing[rownames(corMat1)]))
+         labels = c("",90, round(timing[rownames(corMat1)])))
     axis(side = 2, at = -.5:(ncol(corMat1) + 1), 
-         labels = c("",90, timing[colnames(corMat1)]), las = 2)
+         labels = c("",90, round(timing[colnames(corMat1)])), las = 2)
   }
 }
 
@@ -310,3 +318,8 @@ mtext(side = 1, outer = TRUE,line = 2, text = "MYA" )
 mtext(side = 4, outer = TRUE,line = 2, text = "MYA" )
 
 dev.off()
+
+
+
+
+
