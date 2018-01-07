@@ -1,16 +1,16 @@
 
 rm(list = ls())
 
-specRef = "mm10"
-queRef = "hg19"
+specRef = "hg19"
+queRef = "mm10"
 
 # only works for mouse
 keepX = FALSE
 
 
-load(paste("~/Desktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/",specRef,".synthBin.genome.variable.RData", sep = ""))
+load(paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/",specRef,".synthBin.genome.variable.fillOnly.RData", sep = ""))
 
-load(file = paste("~/Desktop/RTN_domains/R_objects/netsAnalysis/hotspots/",specRef,"repNoRep.RData", sep = ""))
+load(file = paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/hotspots/",specRef,"repNoRep.RData", sep = ""))
 
 
 # maybe just rewrite the code to get the norm data
@@ -35,16 +35,16 @@ names(intSigRanges) <- gapType
 
 
 
-
+#pre normailze dnasePeaks with mappability
+synthBin.gr$dnasePeaks <- (synthBin.gr$dnasePeaks/synthBin.gr$mapUnique) * 200000
 
 ## Bin rates for vairables
 df<- data.frame(synthBin.gr)
-colChoice <- c("dnasePeaks","ladCov","exon", "intron","ctcfMotif", 
-               "L1Motif", "prdm9Motif", "ancient", "new_L1", "new_SINE", 
+colChoice <- c("dnasePeaks","ladCov","exon", "intron", "ancient", "new_L1", "new_SINE", 
                "old_L1", "recHotSpot","cpgCov")
 
 remainRefBases <- width(synthBin.gr)[1] - (df$queIns + df$refDel + df$seqGap)
-df[remainRefBases > 0,colChoice] <- (df[remainRefBases > 0,colChoice]/remainRefBases[remainRefBases > 0]) * width(synthBin.gr)[1]
+df[remainRefBases > 0,colChoice[colChoice != "dnasePeaks"]] <- (df[remainRefBases > 0,colChoice[colChoice != "dnasePeaks"]]/remainRefBases[remainRefBases > 0]) * width(synthBin.gr)[1]
 
 
 remainingBases <- (df$end - df$start + 1) - (df$missingGap + df$seqGap)
@@ -105,15 +105,16 @@ rownames(zAll) <- gapType
 
 zAll
 
+
 if(specRef == "hg19"){
-  save(zAll, file = paste("~/Desktop/RTN_domains/R_objects/netsAnalysis/hotspots/",specRef,".permZ.RData", sep = ""))
+  save(zAll, file = paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/hotspots/",specRef,".permZ.mappability.RData", sep = ""))
 }
 
 if(specRef == "mm10"){
   if(keepX){
-    save(zAll, file = paste("~/Desktop/RTN_domains/R_objects/netsAnalysis/hotspots/",specRef,".permZkeepX.RData", sep = ""))
+    save(zAll, file = paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/hotspots/",specRef,".permZkeepX.mappability.RData", sep = ""))
   }else{
-    save(zAll, file = paste("~/Desktop/RTN_domains/R_objects/netsAnalysis/hotspots/",specRef,".permZnoX.RData", sep = ""))
+    save(zAll, file = paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/hotspots/",specRef,".permZnoX.mappability.RData", sep = ""))
   }
 }
 
