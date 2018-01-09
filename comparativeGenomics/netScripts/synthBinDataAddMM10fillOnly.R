@@ -35,7 +35,7 @@ mapUnique.gr <- GRanges(mapUnique)
 seqlevels(mapUnique.gr) <- refChrInfo$chrom
 seqlengths(mapUnique.gr) <- refChrInfo$size
 genome(mapUnique.gr) <- genomes["ref"]
-mapUnique.gr <- genoExpandStretch(mapUnique.gr, newSynthRefShift, seqlengths(synthBin.gr))
+mapUnique.gr <- genoExpandBreak(mapUnique.gr, newSynthRefShift, seqlengths(synthBin.gr))
 
 ol <- findOverlaps(synthBin.gr, mapUnique.gr)
 pInt <- pintersect(synthBin.gr[queryHits(ol)], mapUnique.gr[subjectHits(ol)])
@@ -267,51 +267,51 @@ synthBin.gr[repSum$queryHit]$old_L1 <- repSum$old_L1
 # get a new repeats table and fix this problem for good
 
 
-library(RMySQL)
-mychannel <- dbConnect(MySQL(), user="genome", host="genome-mysql.cse.ucsc.edu", db = "mm10")
-seqGaps <- dbGetQuery(mychannel, "SELECT * FROM gap;")
-centromere.df <- seqGaps[seqGaps$type == "centromere",]
-telomere.df <- seqGaps[seqGaps$type == "telomere",]
-
-centromere.gr <- GRanges(seqnames = centromere.df$chrom,
-                         ranges = IRanges(start = centromere.df$chromStart, end = centromere.df$chromEnd))
-seqlevels(centromere.gr) <- refChrInfo$chrom
-seqlengths(centromere.gr) <- refChrInfo$size
-genome(centromere.gr) <- genomes["ref"]
-centromere.gr <- sort(sortSeqlevels(centromere.gr))
-
-centromere.gr <- genoExpandStretch(centromere.gr, newSynthRefShift, seqlengths(synthBin.gr))
-
-
-
-telomere.gr <- GRanges(seqnames = telomere.df$chrom,
-                       ranges = IRanges(start = telomere.df$chromStart + 1, end = telomere.df$chromEnd))
-seqlevels(telomere.gr) <- refChrInfo$chrom
-seqlengths(telomere.gr) <- refChrInfo$size
-genome(telomere.gr) <- genomes["ref"]
-
-seqlevels(telomere.gr)[table(seqnames(telomere.gr)) == 0]
-
-extraTelomete.gr <- GRanges(seqnames <- rep(seqlevels(telomere.gr)[table(seqnames(telomere.gr)) == 0],2),
-                            ranges = IRanges(start = c(rep(1, sum(table(seqnames(telomere.gr)) == 0)),
-                                                       seqlengths(telomere.gr)[table(seqnames(telomere.gr)) == 0]),
-                                             width = 1))
-telomere.gr <- c(telomere.gr, extraTelomete.gr)                                    
-
-
-telomere.gr <- sort(sortSeqlevels(telomere.gr))
-
-telomere.gr <- genoExpandStretch(telomere.gr, newSynthRefShift, seqlengths(synthBin.gr))
-
-
-distFromTelomere <- distanceToNearest(synthBin.gr, telomere.gr)
-distFromCentromere <- distanceToNearest(synthBin.gr, centromere.gr)
-
-synthBin.gr$distFromTelomere <- as.integer(NA)
-synthBin.gr$distFromTelomere[queryHits(distFromTelomere)] <- mcols(distFromTelomere)$distance
-
-synthBin.gr$distFromCentromere  <- as.integer(NA)
-synthBin.gr$distFromCentromere[queryHits(distFromCentromere)] <- mcols(distFromCentromere)$distance
+# library(RMySQL)
+# mychannel <- dbConnect(MySQL(), user="genome", host="genome-mysql.cse.ucsc.edu", db = "mm10")
+# seqGaps <- dbGetQuery(mychannel, "SELECT * FROM gap;")
+# centromere.df <- seqGaps[seqGaps$type == "centromere",]
+# telomere.df <- seqGaps[seqGaps$type == "telomere",]
+# 
+# centromere.gr <- GRanges(seqnames = centromere.df$chrom,
+#                          ranges = IRanges(start = centromere.df$chromStart, end = centromere.df$chromEnd))
+# seqlevels(centromere.gr) <- refChrInfo$chrom
+# seqlengths(centromere.gr) <- refChrInfo$size
+# genome(centromere.gr) <- genomes["ref"]
+# centromere.gr <- sort(sortSeqlevels(centromere.gr))
+# 
+# centromere.gr <- genoExpandStretch(centromere.gr, newSynthRefShift, seqlengths(synthBin.gr))
+# 
+# 
+# 
+# telomere.gr <- GRanges(seqnames = telomere.df$chrom,
+#                        ranges = IRanges(start = telomere.df$chromStart + 1, end = telomere.df$chromEnd))
+# seqlevels(telomere.gr) <- refChrInfo$chrom
+# seqlengths(telomere.gr) <- refChrInfo$size
+# genome(telomere.gr) <- genomes["ref"]
+# 
+# seqlevels(telomere.gr)[table(seqnames(telomere.gr)) == 0]
+# 
+# extraTelomete.gr <- GRanges(seqnames <- rep(seqlevels(telomere.gr)[table(seqnames(telomere.gr)) == 0],2),
+#                             ranges = IRanges(start = c(rep(1, sum(table(seqnames(telomere.gr)) == 0)),
+#                                                        seqlengths(telomere.gr)[table(seqnames(telomere.gr)) == 0]),
+#                                              width = 1))
+# telomere.gr <- c(telomere.gr, extraTelomete.gr)                                    
+# 
+# 
+# telomere.gr <- sort(sortSeqlevels(telomere.gr))
+# 
+# telomere.gr <- genoExpandStretch(telomere.gr, newSynthRefShift, seqlengths(synthBin.gr))
+# 
+# 
+# distFromTelomere <- distanceToNearest(synthBin.gr, telomere.gr)
+# distFromCentromere <- distanceToNearest(synthBin.gr, centromere.gr)
+# 
+# synthBin.gr$distFromTelomere <- as.integer(NA)
+# synthBin.gr$distFromTelomere[queryHits(distFromTelomere)] <- mcols(distFromTelomere)$distance
+# 
+# synthBin.gr$distFromCentromere  <- as.integer(NA)
+# synthBin.gr$distFromCentromere[queryHits(distFromCentromere)] <- mcols(distFromCentromere)$distance
 
 
 

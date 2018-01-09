@@ -34,7 +34,7 @@ mapUnique.gr <- GRanges(mapUnique)
 seqlevels(mapUnique.gr) <- refChrInfo$chrom
 seqlengths(mapUnique.gr) <- refChrInfo$size
 genome(mapUnique.gr) <- genomes["ref"]
-mapUnique.gr <- genoExpandStretch(mapUnique.gr, newSynthRefShift, seqlengths(synthBin.gr))
+mapUnique.gr <- genoExpandBreak(mapUnique.gr, newSynthRefShift, seqlengths(synthBin.gr))
 
 ol <- findOverlaps(synthBin.gr, mapUnique.gr)
 pInt <- pintersect(synthBin.gr[queryHits(ol)], mapUnique.gr[subjectHits(ol)])

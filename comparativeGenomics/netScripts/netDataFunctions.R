@@ -29,6 +29,7 @@ switchGenome <- function(queGenome.gr){
 
 
 genoExpandBreak <- function(x.gr, synthGenome, expandedSeqlengths){
+  x.gr <- sort(sortSeqlevels(x.gr))
   seqlengths(x.gr) <- seqlengths(synthGenome)
   ol <- findOverlaps(x.gr, synthGenome)
   pInt <- pintersect(x.gr[queryHits(ol)], synthGenome[subjectHits(ol)], drop.nohit.ranges=TRUE)

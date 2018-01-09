@@ -1,8 +1,8 @@
 
 rm(list = ls())
 
-specRef = "hg19"
-queRef = "mm10"
+specRef = "mm10"
+queRef = "hg19"
 
 # only works for mouse
 keepX = FALSE
