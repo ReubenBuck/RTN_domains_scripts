@@ -30,7 +30,7 @@ load(paste("Documents/dna_turnover/workStationDesktop//RTN_domains/R_objects/net
 
 mapUnique <- read.table("~/Documents/dna_turnover/workStationDesktop/RTN_domains/data/mappability/uniqueMap/mm1036Unique.bed", 
                         col.names = c("seqnames", "start", "end", "score"))
-mapUnique$start <- mapUnique$start +1
+mapUnique$start <- mapUnique$start + 1
 mapUnique.gr <- GRanges(mapUnique)
 seqlevels(mapUnique.gr) <- refChrInfo$chrom
 seqlengths(mapUnique.gr) <- refChrInfo$size

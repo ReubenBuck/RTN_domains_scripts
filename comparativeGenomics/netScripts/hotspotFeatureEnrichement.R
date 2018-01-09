@@ -1,11 +1,11 @@
 
 rm(list = ls())
 
-specRef = "mm10"
-queRef = "hg19"
+specRef = "hg19"
+queRef = "mm10"
 
 # only works for mouse
-keepX = FALSE
+keepX = TRUE
 
 
 load(paste("~/Documents/dna_turnover/workStationDesktop/RTN_domains/R_objects/netsAnalysis/syntheticBinnedGenome/",specRef,".synthBin.genome.variable.fillOnly.RData", sep = ""))
@@ -63,6 +63,7 @@ if(specRef == "mm10" & !keepX){
 }
 
 synthBinNormVar.gr <- synthBinNormVar.gr[seqnames(synthBinNormVar.gr) %in% chrAll]
+synthBinNormVar.gr <- (synthBinNormVar.gr[synthBinNormVar.gr$mapUnique > 40000])
 
 dfMcol <- data.frame(mcols(synthBinNormVar.gr))
 dfMcol <- dfMcol[,c(colChoice,"gcContent", "dnaseActivity", "recombRate")]
@@ -87,8 +88,16 @@ for(gType in gapType){
   a <- replicate(n = 10000, expr = meanDiffCalc(x = sample(ols, size = length(ols), replace = FALSE) , df = dfMcol))
   a <- data.frame(t(a))
   
+  # s <- sample(ols, size = length(ols), replace = FALSE)
+  # a <- data.frame(meanDiffCalc(s, dfMcol))
+  # while (a["dnasePeaks",length(a)] < 2000 ) {
+  #   s <- sample(ols, size = length(ols), replace = FALSE)
+  #   a <- cbind(a,meanDiffCalc(s, dfMcol))
+  # }
   
-  varType = "intron"
+  
+  
+  varType = "dnasePeaks"
   hist(a[,varType], breaks = 50)
   
   abline(v = meanDiff[varType])
